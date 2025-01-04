@@ -1,0 +1,75 @@
+[ {
+  "command" : "changeSpendingLimit",
+  "output" : {
+    "description" : "You must be owner in order to change spending limit.",
+    "timestamp" : 37
+  },
+  "timestamp" : 37
+}, {
+  "command" : "businessReport",
+  "output" : {
+    "IBAN" : "RO65POOB8944016386845896",
+    "balance" : 110.0,
+    "currency" : "RON",
+    "spending limit" : 500.0,
+    "deposit limit" : 500.0,
+    "managers" : [ {
+      "spent" : 0.0,
+      "deposited" : 0.0,
+      "username" : "Aane Marcel"
+    } ],
+    "employees" : [ {
+      "spent" : 0.0,
+      "deposited" : 110.0,
+      "username" : "Duhamel Audrey"
+    } ],
+    "total spent" : 0.0,
+    "total deposited" : 110.0,
+    "statistics type" : "transaction"
+  },
+  "timestamp" : 38
+}, {
+  "command" : "payOnline",
+  "output" : {
+    "description" : "Card not found",
+    "timestamp" : 40
+  },
+  "timestamp" : 40
+}, {
+  "command" : "payOnline",
+  "output" : {
+    "description" : "Card not found",
+    "timestamp" : 42
+  },
+  "timestamp" : 42
+}, {
+  "command" : "payOnline",
+  "output" : {
+    "description" : "Card not found",
+    "timestamp" : 45
+  },
+  "timestamp" : 45
+}, {
+  "command" : "businessReport",
+  "output" : {
+    "IBAN" : "RO65POOB8944016386845896",
+    "balance" : 2337.71,
+    "currency" : "RON",
+    "spending limit" : 233.0,
+    "deposit limit" : 22.0,
+    "managers" : [ {
+      "spent" : 0.0,
+      "deposited" : 3374.0,
+      "username" : "Aane Marcel"
+    } ],
+    "employees" : [ {
+      "spent" : 0.0,
+      "deposited" : 110.0,
+      "username" : "Duhamel Audrey"
+    } ],
+    "total spent" : 0.0,
+    "total deposited" : 3484.0,
+    "statistics type" : "transaction"
+  },
+  "timestamp" : 49
+} ]

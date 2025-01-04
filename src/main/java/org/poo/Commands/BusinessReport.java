@@ -1,0 +1,198 @@
+package org.poo.Commands;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.poo.entities.Account;
+import org.poo.entities.BusinessAccount;
+import org.poo.entities.Transaction;
+import org.poo.entities.User;
+import org.poo.entities.UserRepo;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+public class BusinessReport implements Command {
+    private String type;
+    private int startTimestamp;
+    private int endTimestamp;
+    private String accountIban;
+    private final int timestamp;
+    private UserRepo userRepo;
+
+    public BusinessReport(final String type, final int startTimestamp, final int endTimestamp,
+                          final String accountIban, final int timestamp, final UserRepo userRepo) {
+        this.type = type;
+        this.startTimestamp = startTimestamp;
+        this.endTimestamp = endTimestamp;
+        this.accountIban = accountIban;
+        this.timestamp = timestamp;
+        this.userRepo = userRepo;
+    }
+
+    @Override
+    public void execute(ArrayNode output) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode resultNode = objectMapper.createObjectNode();
+        resultNode.put("command", "businessReport");
+
+        Account account = userRepo.getAccountByIBAN(accountIban);
+        if (account == null) {
+            resultNode.put("output", "Account not found");
+            resultNode.put("timestamp", timestamp);
+            output.add(resultNode);
+            return;
+        }
+
+        if (!account.getAccountType().equals("business")) {
+            resultNode.put("output", "Account is not of type business");
+            resultNode.put("timestamp", timestamp);
+            output.add(resultNode);
+            return;
+        }
+
+        BusinessAccount businessAccount = (BusinessAccount) account;
+
+        ObjectNode accountDetails = objectMapper.createObjectNode();
+        accountDetails.put("IBAN", businessAccount.getIban());
+        accountDetails.put("balance", businessAccount.getBalance());
+        accountDetails.put("currency", businessAccount.getCurrency());
+        accountDetails.put("spending limit", businessAccount.getSpendingLimit());
+        accountDetails.put("deposit limit", businessAccount.getDepositLimit());
+
+        if (type.equals("transaction")) {
+            generateTransactionReport(businessAccount, accountDetails);
+        } else if (type.equals("commerciant")) {
+            generateCommerciantReport(businessAccount, accountDetails);
+        } else {
+            accountDetails.put("error", "Invalid report type");
+        }
+
+        resultNode.set("output", accountDetails);
+        resultNode.put("timestamp", timestamp);
+        output.add(resultNode);
+    }
+
+    private void generateTransactionReport(BusinessAccount businessAccount, ObjectNode accountDetails) {
+        ArrayNode managersNode = new ObjectMapper().createArrayNode();
+        ArrayNode employeesNode = new ObjectMapper().createArrayNode();
+
+        double totalSpent = 0;
+        double totalDeposited = 0;
+        for(User employee : businessAccount.getEmployees()) {
+           double spent = 0;
+           double deposited = 0;
+           for(Transaction transaction : businessAccount.getTransactions()) {
+               if(transaction.getTimestamp() < startTimestamp || transaction.getTimestamp() > endTimestamp) {
+                    continue;
+               }
+               if(transaction.getInitiator() == employee) {
+                     if("sent".equals(transaction.getTransferType())) {
+                          spent += transaction.getAmount();
+                     }
+                     if("received".equals(transaction.getTransferType())) {
+                          deposited += transaction.getAmount();
+                     }
+                    if(transaction.getDescription().equals("Card payment")) {
+                        System.out.println("DEBUG: Card payment, now spent is " + spent);
+                        spent += transaction.getAmount();
+                    }
+                    if (transaction.getDescription().equals("Add funds")) {
+                        System.out.println("DEBUG: Add funds, now deposited is " + deposited);
+                        deposited += transaction.getAmount();
+                    }
+                }
+           }
+           totalSpent += spent;
+           totalDeposited += deposited;
+            ObjectNode employeeNode = new ObjectMapper().createObjectNode();
+            employeeNode.put("spent", spent);
+            employeeNode.put("deposited", deposited);
+            employeeNode.put("username", employee.getFullName());
+            employeesNode.add(employeeNode);
+        }
+        for(User manager : businessAccount.getManagers()) {
+           double spent = 0;
+           double deposited = 0;
+           for(Transaction transaction : businessAccount.getTransactions()) {
+               if(transaction.getTimestamp() < startTimestamp || transaction.getTimestamp() > endTimestamp) {
+                   continue;
+               }
+                if(transaction.getInitiator() == manager) {
+                     if("sent".equals(transaction.getTransferType())) {
+                          spent += transaction.getAmount();
+                     }
+                     if("received".equals(transaction.getTransferType())) {
+                          deposited += transaction.getAmount();
+                     }
+                     if(transaction.getDescription().equals("Card payment")) {
+                         System.out.println("DEBUG: Card payment, now spent is " + spent);
+                         spent += transaction.getAmount();
+                     }
+                     if (transaction.getDescription().equals("Add funds")) {
+                         System.out.println("DEBUG: Add funds, now deposited is " + deposited);
+                         deposited += transaction.getAmount();
+                     }
+                }
+           }
+           totalSpent += spent;
+           totalDeposited += deposited;
+            ObjectNode managerNode = new ObjectMapper().createObjectNode();
+            managerNode.put("spent", spent);
+            managerNode.put("deposited", deposited);
+            managerNode.put("username", manager.getFullName());
+            managersNode.add(managerNode);
+        }
+
+        accountDetails.set("managers", managersNode);
+        accountDetails.set("employees", employeesNode);
+        accountDetails.put("total spent", totalSpent);
+        accountDetails.put("total deposited", totalDeposited);
+        accountDetails.put("statistics type", "transaction");
+    }
+
+    private void generateCommerciantReport(BusinessAccount businessAccount, ObjectNode accountDetails) {
+        ArrayNode commerciantsNode = new ObjectMapper().createArrayNode();
+        Map<String, CommerciantData> commerciants = new HashMap<>();
+
+        for (Transaction transaction : businessAccount.getTransactions()) {
+            if (transaction.getTimestamp() < startTimestamp || transaction.getTimestamp() > endTimestamp) {
+                continue;
+            }
+
+            String commerciant = transaction.getCommerciant();
+            if (commerciant == null) continue;
+
+            CommerciantData data = commerciants.computeIfAbsent(commerciant, k -> new CommerciantData());
+            data.totalReceived += transaction.getAmount();
+
+            User initiator = transaction.getInitiator();
+            if (initiator != null) {
+                if (businessAccount.getManagers().contains(initiator)) {
+                    data.managers.add(initiator.getFullName());
+                } else if (businessAccount.getEmployees().contains(initiator)) {
+                    data.employees.add(initiator.getFullName());
+                }
+            }
+        }
+
+        for (Map.Entry<String, CommerciantData> entry : commerciants.entrySet()) {
+            ObjectNode commerciantNode = new ObjectMapper().createObjectNode();
+            commerciantNode.put("commerciant", entry.getKey());
+            commerciantNode.put("totalReceived", entry.getValue().totalReceived);
+            commerciantNode.set("managers", new ObjectMapper().valueToTree(entry.getValue().managers));
+            commerciantNode.set("employees", new ObjectMapper().valueToTree(entry.getValue().employees));
+            commerciantsNode.add(commerciantNode);
+        }
+
+        accountDetails.set("commerciants", commerciantsNode);
+    }
+
+    private static class CommerciantData {
+        double totalReceived = 0;
+        Set<String> managers = new TreeSet<>();
+        Set<String> employees = new TreeSet<>();
+    }
+}
