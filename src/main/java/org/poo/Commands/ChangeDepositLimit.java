@@ -28,7 +28,6 @@ public class ChangeDepositLimit implements Command {
             return;
         }
         if (account == null) {
-            System.out.println("Business Account with IBAN " + accountIban + " not found");
             return;
         }
         account.setDepositLimit(amount);

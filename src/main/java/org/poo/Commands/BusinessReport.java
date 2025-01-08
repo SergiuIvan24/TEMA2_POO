@@ -96,11 +96,9 @@ public class BusinessReport implements Command {
                           deposited += transaction.getAmount();
                      }
                     if(transaction.getDescription().equals("Card payment")) {
-                        System.out.println("DEBUG: Card payment, now spent is " + spent);
                         spent += transaction.getAmount();
                     }
                     if (transaction.getDescription().equals("Add funds")) {
-                        System.out.println("DEBUG: Add funds, now deposited is " + deposited);
                         deposited += transaction.getAmount();
                     }
                 }
@@ -128,11 +126,9 @@ public class BusinessReport implements Command {
                           deposited += transaction.getAmount();
                      }
                      if(transaction.getDescription().equals("Card payment")) {
-                         System.out.println("DEBUG: Card payment, now spent is " + spent);
                          spent += transaction.getAmount();
                      }
                      if (transaction.getDescription().equals("Add funds")) {
-                         System.out.println("DEBUG: Add funds, now deposited is " + deposited);
                          deposited += transaction.getAmount();
                      }
                 }
@@ -184,10 +180,12 @@ public class BusinessReport implements Command {
             commerciantNode.put("totalReceived", entry.getValue().totalReceived);
             commerciantNode.set("managers", new ObjectMapper().valueToTree(entry.getValue().managers));
             commerciantNode.set("employees", new ObjectMapper().valueToTree(entry.getValue().employees));
+
             commerciantsNode.add(commerciantNode);
         }
 
         accountDetails.set("commerciants", commerciantsNode);
+        accountDetails.put("statistics type", "commerciant");
     }
 
     private static class CommerciantData {

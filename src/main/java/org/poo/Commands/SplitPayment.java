@@ -3,8 +3,6 @@ package org.poo.Commands;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.Observer.Observer;
-import org.poo.Observer.Subject;
 import org.poo.entities.Account;
 import org.poo.entities.SplitPaymentManager;
 import org.poo.entities.Transaction;
@@ -19,16 +17,16 @@ import java.util.Map;
 public final class SplitPayment implements Command {
     private final SplitPaymentManager manager;
 
-    private final String splitPaymentType;    // "equal" / "custom"
-    private final List<String> accountsIban;  // IBAN-urile implicate
-    private final double amount;              // Doar pt "equal"
-    private final List<Double> amountForUsers;// Doar pt "custom"
+    private final String splitPaymentType;
+    private final List<String> accountsIban;
+    private final double amount;
+    private final List<Double> amountForUsers;
     private final String currency;
     private final int timestamp;
     private final UserRepo userRepo;
 
-    private final Map<String, Integer> userIndexMap = new HashMap<>();
-    private final Map<String, Boolean> responses = new HashMap<>();
+    private final Map<String, List<Integer>> userIndexMap = new HashMap<>();
+    private final Map<String, Map<Integer, Boolean>> responses = new HashMap<>();
 
     private boolean transactionCancelled = false;
     private List<Double> splittedAmounts;
@@ -50,6 +48,22 @@ public final class SplitPayment implements Command {
         this.timestamp = timestamp;
         this.userRepo = userRepo;
 
+        populateUserIndexMap();
+
+    }
+
+    private void populateUserIndexMap() {
+        for (int i = 0; i < accountsIban.size(); i++) {
+            String iban = accountsIban.get(i);
+            User user = userRepo.getUserByIBAN(iban);
+            if (user != null) {
+                String email = user.getEmail();
+                userIndexMap.putIfAbsent(email, new ArrayList<>());
+                userIndexMap.get(email).add(i);
+                responses.putIfAbsent(email, new HashMap<>());
+                responses.get(email).put(this.timestamp, null);
+            }
+        }
     }
 
     @Override
@@ -138,52 +152,63 @@ public final class SplitPayment implements Command {
             }
 
             String email = user.getEmail();
-            userIndexMap.put(email, i);
-            responses.put(email, null);
+            userIndexMap.putIfAbsent(email, new ArrayList<>());
+            userIndexMap.get(email).add(i);
         }
     }
 
-    public void handleAcceptance(String email, boolean accepted, final ArrayNode output) {
-        if (this != manager.getCurrentSplitPayment()) {
+    private SplitPayment findRelevantSplitPayment(String email, String splitPaymentType) {
+        for (SplitPayment split : manager.getSplitPayments()) {
+            if (split.splitPaymentType.equalsIgnoreCase(splitPaymentType)) {
+                if (split.userIndexMap.containsKey(email)) {
+                    return split;
+                } else {
+                    System.out.println("Email " + email + " not found in userIndexMap for split payment with timestamp: " + split.timestamp);
+                }
+            } else {
+                System.out.println("Split payment with timestamp: " + split.timestamp + " has a different type: " + split.splitPaymentType);
+            }
+        }
+        return null;
+    }
+
+
+    public void handleAcceptance(String email, boolean accepted, final ArrayNode output, String splitPaymentType) {
+        SplitPayment targetPayment = findRelevantSplitPayment(email, splitPaymentType);
+
+        if (targetPayment == null || !targetPayment.userIndexMap.containsKey(email)) {
             return;
         }
 
         if (!accepted) {
-            transactionCancelled = true;
-            createRejectedTransaction(output, "One user rejected the payment.");
-            manager.removeSplitPayment(this);
-            processNextPayment(output);
+            targetPayment.transactionCancelled = true;
+            targetPayment.createRejectedTransaction(output, "One user rejected the payment.");
+            manager.removeSplitPayment(targetPayment);
+            targetPayment.processNextPayment(output);
             return;
         }
 
-        Integer idx = userIndexMap.get(email);
-        if (idx == null) {
-            return;
+        List<Integer> indices = targetPayment.userIndexMap.get(email);
+        if (indices != null) {
+            for (int index : indices) {
+                String iban = targetPayment.accountsIban.get(index);
+                Account acc = userRepo.getAccountByIBAN(iban);
+
+                if (acc == null) {
+                    targetPayment.transactionCancelled = true;
+                    targetPayment.createRejectedTransaction(output, "Missing account for IBAN: " + iban);
+                    manager.removeSplitPayment(targetPayment);
+                    targetPayment.processNextPayment(output);
+                    return;
+                }
+
+                Map<Integer, Boolean> userResponses = targetPayment.responses.get(email);
+                if (userResponses != null) {
+                    userResponses.put(targetPayment.getTimestamp(), true);
+                }
+
+            }
         }
-
-        double share = splittedAmounts.get(idx);
-        String iban = accountsIban.get(idx);
-
-        Account acc = userRepo.getAccountByIBAN(iban);
-        if (acc == null) {
-            transactionCancelled = true;
-            manager.removeSplitPayment(this);
-            processNextPayment(output);
-            return;
-        }
-
-        double convertedShare = userRepo.getExchangeRate(currency, acc.getCurrency()) * share;
-        double newBalanceIf = acc.getBalance() - convertedShare;
-        if (newBalanceIf < acc.getMinimumBalance()) {
-            transactionCancelled = true;
-            createInsufficientFundsTransaction(output, iban);
-            manager.removeSplitPayment(this);
-            processNextPayment(output);
-            return;
-        }
-
-        responses.put(email, true);
-
         if (allAccepted()) {
             doSuccessPayment(output);
             manager.removeSplitPayment(this);
@@ -193,6 +218,7 @@ public final class SplitPayment implements Command {
 
     private void createInsufficientFundsTransaction(ArrayNode output, String insufficientIban) {
         String err = "Account " + insufficientIban + " has insufficient funds for a split payment.";
+        double share = amount / accountsIban.size();
         if(splitPaymentType.equals("equal")){
             Transaction errorTx = new Transaction.Builder()
                     .setTimestamp(timestamp)
@@ -201,7 +227,7 @@ public final class SplitPayment implements Command {
                     .setCurrency(currency)
                     .setInvolvedAccounts(accountsIban)
                     .setError(err)
-                    .setAmount(amount)
+                    .setAmount(share)
                     .build();
             for (String ib : accountsIban) {
                 Account ac = userRepo.getAccountByIBAN(ib);
@@ -266,19 +292,46 @@ public final class SplitPayment implements Command {
                 ac.addTransaction(rejectTx);
             }
         }
-        output.add(createOutputNode(errorMsg));
     }
 
     private boolean allAccepted() {
-        for (Map.Entry<String, Boolean> e : responses.entrySet()) {
-            if (!Boolean.TRUE.equals(e.getValue())) {
-                return false;
+        for (Map.Entry<String, List<Integer>> entry : userIndexMap.entrySet()) {
+            String email = entry.getKey();
+            Map<Integer, Boolean> emailResponses = responses.getOrDefault(email, new HashMap<>());
+
+            for (Integer timestamp : emailResponses.keySet()) {
+                Boolean response = emailResponses.get(timestamp);
+                if (!Boolean.TRUE.equals(response)) {
+                    return false;
+                }
             }
         }
         return true;
     }
 
     private void doSuccessPayment(ArrayNode output) {
+        for (int i = 0; i < accountsIban.size(); i++) {
+            String ib = accountsIban.get(i);
+            Account ac = userRepo.getAccountByIBAN(ib);
+
+            if (ac == null) {
+                createInsufficientFundsTransaction(output, ib);
+                return;
+            }
+
+            double share;
+            if ("equal".equalsIgnoreCase(splitPaymentType)) {
+                share = amount / accountsIban.size();
+            } else {
+                share = splittedAmounts.get(i);
+            }
+
+            double convertedShare = userRepo.getExchangeRate(currency, ac.getCurrency()) * share;
+            if (ac.getBalance() - convertedShare < ac.getMinimumBalance()) {
+                createInsufficientFundsTransaction(output, ib);
+                return;
+            }
+        }
         for (int i = 0; i < accountsIban.size(); i++) {
 
             String ib = accountsIban.get(i);
@@ -340,18 +393,15 @@ public final class SplitPayment implements Command {
     }
 
     private List<Double> buildSplitAmounts() {
-        System.out.println("[DEBUG] buildSplitAmounts() called for SplitPaymentType: " + splitPaymentType);
         if ("equal".equalsIgnoreCase(splitPaymentType)) {
 
             double perUser = amount / accountsIban.size();
             List<Double> splitted = new ArrayList<>();
-            System.out.println("[DEBUG] Splitting amount equally: " + splitted);
             for (int i = 0; i < accountsIban.size(); i++) {
                 splitted.add(perUser);
             }
             return splitted;
         } else if ("custom".equalsIgnoreCase(splitPaymentType)) {
-            System.out.println("[DEBUG] Custom amounts provided: " + amountForUsers);
             if (amountForUsers == null || amountForUsers.size() != accountsIban.size()) {
                 return null;
             }

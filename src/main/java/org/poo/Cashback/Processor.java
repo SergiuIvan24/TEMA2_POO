@@ -1,6 +1,6 @@
 package org.poo.Cashback;
 
-import org.poo.entities.User;
+import org.poo.entities.Account;
 
 public class Processor {
     private CashbackStrategy strategy;
@@ -9,7 +9,7 @@ public class Processor {
         this.strategy = strategy;
     }
 
-    public double processCashback(User user, String Category, double transactionAmount) {
-        return strategy.calculateCashback(user, Category, transactionAmount);
+    public double processCashback(Account account, String Category, double transactionAmount) {
+        return strategy.calculateCashback(account, Category, transactionAmount);
     }
 }

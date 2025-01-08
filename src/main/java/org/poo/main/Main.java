@@ -74,7 +74,7 @@ public final class Main {
 
         JsonNode inputData = objectMapper.readTree(file);
 
-        Bank.resetInstance(); // Resetăm înainte de a crea o nouă instanță
+        Bank.resetInstance();
         Bank bankManager = Bank.getInstance(inputData, true);
 
         bankManager.executeCommands(inputData.get("commands"));

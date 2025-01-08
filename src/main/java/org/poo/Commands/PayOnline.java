@@ -44,7 +44,7 @@ public final class PayOnline implements Command {
         return Math.round(value * 100.0) / 100.0;
     }
 
-    private double calculateCashback(User user, String commerciant, double transactionAmount) {
+    private double calculateCashback(Account account, String commerciant, double transactionAmount) {
         Commerciant c = userRepo.getCommerciant(commerciant);
         if (c == null) {
             return 0.0;
@@ -61,13 +61,11 @@ public final class PayOnline implements Command {
         }
 
         Processor processor = new Processor(strategy);
-        return processor.processCashback(user, commerciant, transactionAmount);
+        return processor.processCashback(account, commerciant, transactionAmount);
     }
 
     @Override
     public void execute(final ArrayNode output) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
         User user = userRepo.getUser(email);
         if (user == null) {
             return;
@@ -125,10 +123,9 @@ public final class PayOnline implements Command {
             double rate = userRepo.getExchangeRate(currency, selectedAccount.getCurrency());
             convertedAmount = amount * rate;
         }
-        convertedAmount = round2(convertedAmount);
-        double convertedAmountInRON = round2(amount * userRepo.getExchangeRate(currency, "RON"));
+        double convertedAmountInRON = amount * userRepo.getExchangeRate(currency, "RON");
         double commissionRate = userRepo.getPlanCommissionRate(user, convertedAmountInRON);
-        double commission = round2(commissionRate * convertedAmount);
+        double commission = commissionRate * convertedAmount;
         double newBalance = round2(selectedAccount.getBalance() - (convertedAmount + commission));
 
         if (newBalance < 0) {
@@ -150,10 +147,14 @@ public final class PayOnline implements Command {
             initiator = userRepo.getUser(email);
         }
 
+        if(amount <= 0) {
+            return;
+        }
+
         Transaction payTx = new Transaction.Builder()
                 .setTimestamp(timestamp)
                 .setDescription("Card payment")
-                .setAmount(convertedAmount)
+                .setAmount(round2(convertedAmount))
                 .setCommerciant(commerciant)
                 .setInitiator(initiator)
                 .build();
@@ -161,16 +162,24 @@ public final class PayOnline implements Command {
         selectedAccount.addTransaction(payTx);
 
         double amountInRON = round2(amount * userRepo.getExchangeRate(currency, "RON"));
+        if(amountInRON >= 300 && user.getServicePlan().equals("silver")) {
+            user.addNrOfTransactionsOver300RON();
+            if(user.getNrOfTransactionsOver300RON() == 5 && user.getServicePlan().equals("silver")){
+                user.setServicePlan("gold");
+            }
+        }
+        System.out.println("User " + user.getFullName() + " has spent " + amountInRON + " RON");
         Commerciant c = userRepo.getCommerciant(commerciant);
         String cashbackType = c.getCashbackStrategy();
         if(cashbackType.equals("spendingThreshold")) {
-            user.addSpent(amountInRON);
+            selectedAccount.addSpent(amountInRON);
+            selectedAccount.addSpendingThresholdTotal(c.getCommerciant(), amountInRON);
         }
-        double rawCashback = calculateCashback(user, commerciant, amountInRON);
-        double finalCashback = round2(rawCashback);
+        double rawCashback = calculateCashback(selectedAccount, commerciant, amountInRON);
+        double finalConvertedCashback = rawCashback * userRepo.getExchangeRate("RON", selectedAccount.getCurrency());
 
-        if (finalCashback > 0) {
-            double afterCashbackBalance = round2(selectedAccount.getBalance() + finalCashback);
+        if (rawCashback > 0) {
+            double afterCashbackBalance = round2(selectedAccount.getBalance() + finalConvertedCashback);
             selectedAccount.setBalance(afterCashbackBalance);
         }
 

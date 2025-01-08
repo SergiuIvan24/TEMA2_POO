@@ -38,6 +38,16 @@ public class CashWithdrawal implements Command {
         ObjectNode response = mapper.createObjectNode();
         ObjectNode commandResponse = mapper.createObjectNode();
 
+        if(email.equals("unknown")) {
+            response.put("description", "User not found");
+            response.put("timestamp", timestamp);
+            commandResponse.put("command", "cashWithdrawal");
+            commandResponse.set("output", response);
+            commandResponse.put("timestamp", timestamp);
+            output.add(commandResponse);
+            return;
+        }
+
         Account account = null;
         User userWithCard = null;
 
@@ -121,16 +131,24 @@ public class CashWithdrawal implements Command {
         if (accountCurrency.equalsIgnoreCase("RON")) {
             neededInAccountCurrency = amount;
         } else {
-            neededInAccountCurrency = round2(amount / exchangeRate);
+            neededInAccountCurrency = amount / exchangeRate;
         }
 
         double feeRate = userRepo.getPlanCommissionRate(user, amount);
-        double feeValue = round2(neededInAccountCurrency * feeRate);
+        double feeValue = neededInAccountCurrency * feeRate;
         double totalNeeded = neededInAccountCurrency + feeValue;
+        totalNeeded = round2(totalNeeded);
 
         if (account.getBalance() < totalNeeded) {
+            Transaction transaction = new Transaction.Builder()
+                    .setTimestamp(timestamp)
+                    .setDescription("Insufficient funds")
+                    .build();
+            account.addTransaction(transaction);
             return;
         }
+
+
 
         account.setBalance(round2(account.getBalance() - totalNeeded));
 

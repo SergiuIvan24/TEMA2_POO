@@ -10,18 +10,21 @@ import org.poo.entities.UserRepo;
 public class RejectSplitPayment implements Command {
     private final String email;
     private final int timestamp;
+    private final String splitPaymentType;
     private final SplitPaymentManager splitPaymentManager;
     private final UserRepo userRepo;
 
 
     public RejectSplitPayment(final String email,
                               final int timestamp,
+                              final String splitPaymentType,
                               final SplitPaymentManager splitPaymentManager,
                               final UserRepo userRepo) {
         this.email = email;
         this.timestamp = timestamp;
         this.splitPaymentManager = splitPaymentManager;
         this.userRepo = userRepo;
+        this.splitPaymentType = splitPaymentType;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class RejectSplitPayment implements Command {
             output.add(errorNode);
             return;
         }
-        currentPayment.handleAcceptance(email, false, output);
+        currentPayment.handleAcceptance(email, false, output, splitPaymentType);
     }
 
     private ObjectNode createErrorNode(String message) {

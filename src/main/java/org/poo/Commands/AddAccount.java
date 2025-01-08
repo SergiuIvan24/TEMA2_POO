@@ -40,14 +40,18 @@ class AddAccount implements Command {
                     currency,
                     0,
                     "savings",
-                    interestRate
+                    interestRate,
+                    email,
+                    userRepo
             );
         } else if (accountType.equalsIgnoreCase("classic")) {
             newAccount = new ClassicAccount(
                     Utils.generateIBAN(),
                     currency,
                     0,
-                    "classic"
+                    "classic",
+                    email,
+                    userRepo
             );
         } else if (accountType.equalsIgnoreCase("business")) {
             newAccount = new BusinessAccount(

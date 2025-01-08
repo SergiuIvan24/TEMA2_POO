@@ -223,10 +223,11 @@ public final class CommandFactory {
                         userRepo
                 );
                 case "cashWithdrawal":
-                return new CashWithdrawal(
+                    String email = commandData.has("email") ? commandData.get("email").asText() : "unknown";
+                    return new CashWithdrawal(
                         commandData.get("cardNumber").asText(),
                         commandData.get("amount").asDouble(),
-                        commandData.get("email").asText(),
+                        email,
                         commandData.get("location").asText(),
                         commandData.get("timestamp").asInt(),
                         userRepo
@@ -235,6 +236,7 @@ public final class CommandFactory {
                 return new AcceptSplitPayment(
                         commandData.get("email").asText(),
                         commandData.get("timestamp").asInt(),
+                        commandData.get("splitPaymentType").asText(),
                         splitPaymentManager,
                         userRepo
                 );
@@ -243,6 +245,7 @@ public final class CommandFactory {
                 return new RejectSplitPayment(
                         commandData.get("email").asText(),
                         commandData.get("timestamp").asInt(),
+                        commandData.get("splitPaymentType").asText(),
                         splitPaymentManager,
                         userRepo
                 );

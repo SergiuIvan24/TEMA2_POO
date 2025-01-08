@@ -7,7 +7,7 @@ import java.util.Queue;
 
 public class SplitPaymentManager {
 
-       private final Queue<SplitPayment> splitQueue = new LinkedList<>();
+    private final Queue<SplitPayment> splitQueue = new LinkedList<>();
 
     public SplitPaymentManager() {
 
@@ -39,5 +39,9 @@ public class SplitPaymentManager {
      */
     public boolean hasActivePayments() {
         return !splitQueue.isEmpty();
+    }
+
+    public Queue<SplitPayment> getSplitPayments() {
+        return splitQueue;
     }
 }

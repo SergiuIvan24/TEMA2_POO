@@ -5,8 +5,8 @@ public final class SavingsAccount extends Account {
     private double interestRate;
 
     public SavingsAccount(final String iban, final String currency, final double balance,
-                          final String accountType, final double interestRate) {
-        super(iban, currency, balance);
+                          final String accountType, final double interestRate, final String email, UserRepo userRepo) {
+        super(iban, currency, balance, email, userRepo);
         this.interestRate = interestRate;
         this.accountType = accountType;
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.entities.Account;
+import org.poo.entities.BusinessAccount;
 import org.poo.entities.Transaction;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
@@ -33,7 +34,27 @@ public final class PrintTransactions implements Command {
 
         List<Transaction> allTransactions = new ArrayList<>();
         for (Account account : user.getAccounts()) {
-            allTransactions.addAll(account.getTransactions());
+            if(!account.getAccountType().equals("business")) {
+                allTransactions.addAll(account.getTransactions());
+                continue;
+            }
+            BusinessAccount bAcc = (BusinessAccount) account;
+
+            boolean isOwner = bAcc.getOwner().equals(user);
+            boolean isManager = bAcc.getManagers().contains(user);
+            boolean isEmployee = bAcc.getEmployees().contains(user);
+
+            if (!(isOwner || isManager || isEmployee)) {
+                continue;
+            }
+
+            int becameAssociateAt = bAcc.getTimestampWhenBecameAssociate()
+                    .getOrDefault(user, 0);
+            for (Transaction t : bAcc.getTransactions()) {
+                if (t.getTimestamp() >= becameAssociateAt && t.getInitiator() == user) {
+                    allTransactions.add(t);
+                }
+            }
         }
 
         allTransactions.sort(Comparator.comparingInt(Transaction::getTimestamp));
@@ -41,7 +62,8 @@ public final class PrintTransactions implements Command {
         ArrayNode transactionsArray = objectMapper.createArrayNode();
 
         for (Transaction transaction : allTransactions) {
-            if(transaction.getDescription().equals("Add funds")) {
+
+            if (transaction.getDescription().equals("Add funds")) {
                 continue;
             }
             ObjectNode transactionNode = objectMapper.createObjectNode();
@@ -97,7 +119,7 @@ public final class PrintTransactions implements Command {
                 transactionNode.set("involvedAccounts", involvedAccountsNode);
             }
             if(transaction.getSavingsAccountIBAN() != null) {
-                transactionNode.put("classicAccountIBAN", transaction.getClassicAccountIBAN());
+                transactionNode.put("savingsAccountIBAN", transaction.getSavingsAccountIBAN());
             }
             if(transaction.getClassicAccountIBAN() != null) {
                 transactionNode.put("classicAccountIBAN", transaction.getClassicAccountIBAN());
@@ -112,7 +134,6 @@ public final class PrintTransactions implements Command {
             if(transaction.getSplitPaymentType() != null) {
                 transactionNode.put("splitPaymentType", transaction.getSplitPaymentType());
             }
-
 
             transactionsArray.add(transactionNode);
         }

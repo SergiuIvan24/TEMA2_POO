@@ -32,10 +32,12 @@ public class AddNewBusinessAssociate implements Command {
             case "employee":
                 account.addEmployee(userToBeAdded);
                 userToBeAdded.addAccount(account);
+                account.addTimestampWhenBecameAssociate(userToBeAdded, timestamp);
                 break;
             case "manager":
                 account.addManager(userToBeAdded);
                 userToBeAdded.addAccount(account);
+                account.addTimestampWhenBecameAssociate(userToBeAdded, timestamp);
                 break;
             default:
                 break;

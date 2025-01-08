@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.Observer.Observer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Account implements Observer {
     private String iban;
@@ -16,6 +18,48 @@ public abstract class Account implements Observer {
     private double minimumBalance;
     private ArrayList<Transaction> transactions = new ArrayList<Transaction>();
     private String alias;
+    private Map<String, Integer> nrOfTransactions;
+    private double totalSpent;
+    private Map<String, Boolean> cashbackReceived;
+    private String email;
+    private UserRepo userRepo;
+    private Map<String, Double> spendingThresholdTotals = new HashMap<>();
+
+    public void addSpendingThresholdTotal(String commerciant, double amount) {
+        this.spendingThresholdTotals.put(commerciant, this.spendingThresholdTotals.getOrDefault(commerciant, 0.0) + amount);
+    }
+
+    public double getSpentForMerchant(String merchant) {
+        return spendingThresholdTotals.getOrDefault(merchant, 0.0);
+    }
+
+    public void addSpent(double amount) {
+        this.totalSpent += amount;
+    }
+
+    public Map<String, Boolean> getCashbackReceived() {
+        return cashbackReceived;
+    }
+
+    public double getTotalSpent() {
+        return this.totalSpent;
+    }
+
+    public void incrementTransaction(String category) {
+        this.nrOfTransactions.put(category, this.nrOfTransactions.getOrDefault(category, 0) + 1);
+    }
+
+    public int getNrOfTransactions(String category) {
+        return this.nrOfTransactions.getOrDefault(category, 0);
+    }
+
+    public boolean hasReceivedCashback(String category) {
+        return this.cashbackReceived.getOrDefault(category, false);
+    }
+
+    public void markCashbackReceived(String category) {
+        this.cashbackReceived.put(category, true);
+    }
 
     /**
      * @return tranzactiile efectuate pe cont
@@ -47,17 +91,27 @@ public abstract class Account implements Observer {
                         businessAccount.addEmployeeDeposit(initiator, transaction.getAmount());
                     }
                 } else {
-                    System.out.println("DEBUG: Initiator " + initiator.getEmail() + " not part of this business account.");
+                    if(initiator == businessAccount.getOwner()) {
+                        System.out.println("DEBUG: Initiator " + initiator.getEmail() + " is the owner of this business account.");
+                    }else {
+                        System.out.println("DEBUG: Initiator " + initiator.getEmail() + " not part of this business account.");
+                    }
                 }
             }
         }
     }
 
-    public Account(final String iban, final String currency, final double balance) {
+    public Account(final String iban, final String currency, final double balance, final String email, UserRepo userRepo) {
         this.iban = iban;
         this.currency = currency;
         this.balance = balance;
+        this.email = email;
+        this.userRepo = userRepo;
+        this.nrOfTransactions = new HashMap<>(); // Inițializare în constructor
+        this.cashbackReceived = new HashMap<>();
     }
+
+
     /**
      * Adauga un card in lista de carduri a contului
      * @param card cardul de adaugat
@@ -153,7 +207,7 @@ public abstract class Account implements Observer {
         accountNode.put("IBAN", iban);
         accountNode.put("balance", Math.round(balance * 100.0) / 100.0);
         accountNode.put("currency", currency);
-        accountNode.put("type", this instanceof ClassicAccount ? "classic" : "savings");
+        accountNode.put("type", getAccountType());
 
         ArrayNode cardsArray = objectMapper.createArrayNode();
         for (Card card : cards) {
@@ -185,4 +239,19 @@ public abstract class Account implements Observer {
      */
     public abstract String getAccountType();
 
+    public String getEmail() {
+        return email;
+    }
+
+    public UserRepo getUserRepo() {
+        return userRepo;
+    }
+
+    public Map<String, Double> getSpendingThresholdTotals() {
+        return spendingThresholdTotals;
+    }
+
+    public void setSpendingThresholdTotals(Map<String, Double> spendingThresholdTotals) {
+        this.spendingThresholdTotals = spendingThresholdTotals;
+    }
 }

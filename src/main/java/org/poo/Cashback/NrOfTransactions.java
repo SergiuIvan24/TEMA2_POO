@@ -1,19 +1,37 @@
 package org.poo.Cashback;
 
-import org.poo.entities.User;
+import org.poo.entities.Account;
 
 public class NrOfTransactions implements CashbackStrategy {
-    @Override
-    public double calculateCashback(User user, String Category, double transactionAmount) {
-        int transactionCount = user.getNrOfTransactions(Category);
-
-        if (Category.equals("Food") && transactionCount >= 2) {
-            return transactionAmount * 0.02;
-        } else if (Category.equals("Clothes") && transactionCount >= 5) {
-            return transactionAmount * 0.05;
-        } else if (Category.equals("Tech") && transactionCount >= 10) {
-            return transactionAmount * 0.10;
+    public double calculateCashback(Account account, String category, double transactionAmount) {
+        if (account.hasReceivedCashback(category)) {
+            return transactionAmount * getCategoryRate(category);
         }
-        return 0.0;
+
+        int transactionCount = account.getNrOfTransactions(category);
+        double cashback = 0.0;
+
+        if (category.equals("Food") && transactionCount >= 2) {
+            cashback = transactionAmount * 0.02;
+        } else if (category.equals("Clothes") && transactionCount >= 5) {
+            cashback = transactionAmount * 0.05;
+        } else if (category.equals("Tech") && transactionCount >= 10) {
+            cashback = transactionAmount * 0.10;
+        }
+
+        if (cashback > 0.0) {
+            account.markCashbackReceived(category);
+        }
+        return cashback;
     }
+
+    private double getCategoryRate(String category) {
+        return switch (category) {
+            case "Food" -> 0.02;
+            case "Clothes" -> 0.05;
+            case "Tech" -> 0.10;
+            default -> 0.0;
+        };
+    }
+
 }

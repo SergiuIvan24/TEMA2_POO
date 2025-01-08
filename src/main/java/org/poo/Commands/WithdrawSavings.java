@@ -1,11 +1,6 @@
 package org.poo.Commands;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.entities.Account;
-import org.poo.entities.ClassicAccount;
-import org.poo.entities.SavingsAccount;
 import org.poo.entities.Transaction;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
@@ -46,7 +41,7 @@ public class WithdrawSavings implements Command {
             return;
         }
 
-        if (!(savingsAccount instanceof SavingsAccount)) {
+        if (!savingsAccount.getAccountType().equals("savings")) {
             Transaction errorTransaction = new Transaction.Builder()
                     .setTimestamp(timestamp)
                     .setDescription("Account is not of type savings.")
@@ -84,8 +79,11 @@ public class WithdrawSavings implements Command {
             return;
         }
 
-        double amountInSavingsCurrency = amount / exchangeRate;
-        if (savingsAccount.getBalance() < amountInSavingsCurrency) {
+        double amountInSavingsCurrency = amount * userRepo.getExchangeRate(currency, savingsAccount.getCurrency());
+        double amountInRON = amount * userRepo.getExchangeRate(currency, "RON");
+        double totalAmountWithCommission = amountInSavingsCurrency;
+
+        if (savingsAccount.getBalance() < totalAmountWithCommission) {
             Transaction errorTransaction = new Transaction.Builder()
                     .setTimestamp(timestamp)
                     .setDescription("Insufficient funds")
@@ -94,7 +92,7 @@ public class WithdrawSavings implements Command {
             return;
         }
 
-        savingsAccount.setBalance(savingsAccount.getBalance() - amountInSavingsCurrency);
+        savingsAccount.setBalance(savingsAccount.getBalance() - totalAmountWithCommission);
         classicAccount.setBalance(classicAccount.getBalance() + amount);
 
         Transaction successTransaction = new Transaction.Builder()
@@ -106,6 +104,7 @@ public class WithdrawSavings implements Command {
                 .build();
 
         savingsAccount.addTransaction(successTransaction);
+        classicAccount.addTransaction(successTransaction);
     }
 
     private boolean hasMinimumAge(User user) {
@@ -116,7 +115,7 @@ public class WithdrawSavings implements Command {
 
     private Account findClassicAccount(User user, String currency) {
         for (Account account : user.getAccounts()) {
-            if (account instanceof ClassicAccount
+            if (account.getAccountType().equals("classic")
                     && account.getCurrency().equals(currency)) {
                 return account;
             }

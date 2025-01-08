@@ -28,32 +28,43 @@ public class UpgradePlan implements Command {
     public void execute(ArrayNode output) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode response = mapper.createObjectNode();
+        ObjectNode commandResponse = mapper.createObjectNode();
+
 
         User user = userRepo.getUserByIBAN(accountIBAN);
         if (user == null) {
-            response.put("message", "Account not found " + accountIBAN);
-            output.add(response);
+            response.put("description", "Account not found");
+            response.put("timestamp", timestamp);
+            commandResponse.put("command", "upgradePlan");
+            commandResponse.set("output", response);
+            commandResponse.put("timestamp", timestamp);
+            output.add(commandResponse);
             return;
         }
 
         Account account = user.getAccount(accountIBAN);
         if (account == null) {
-            response.put("message", "Account not found");
-            output.add(response);
+            response.put("description", "Account not found");
+            response.put("timestamp", timestamp);
+            commandResponse.put("command", "upgradePlan");
+            commandResponse.set("output", response);
+            commandResponse.put("timestamp", timestamp);
+            output.add(commandResponse);
             return;
         }
 
         String currentPlan = user.getServicePlan();
 
         if (currentPlan.equalsIgnoreCase(newPlanType)) {
-            response.put("message", "The user already has the " + newPlanType + " plan.");
-            output.add(response);
+            Transaction transaction = new Transaction.Builder()
+                    .setTimestamp(timestamp)
+                    .setDescription("The user already has the " + newPlanType + " plan.")
+                    .build();
+            account.addTransaction(transaction);
             return;
         }
 
         if (!isUpgradeValid(currentPlan, newPlanType)) {
-            response.put("message", "You cannot downgrade your plan.");
-            output.add(response);
             return;
         }
 
@@ -65,8 +76,11 @@ public class UpgradePlan implements Command {
         double feeInAccountCurrency = fee / exchangeRate;
 
         if (account.getBalance() < feeInAccountCurrency) {
-            response.put("message", "Insufficient funds");
-            output.add(response);
+           Transaction transaction = new Transaction.Builder()
+                   .setTimestamp(timestamp)
+                   .setDescription("Insufficient funds")
+                   .build();
+              account.addTransaction(transaction);
             return;
         }
 

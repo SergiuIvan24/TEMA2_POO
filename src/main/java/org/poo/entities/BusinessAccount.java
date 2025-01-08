@@ -15,15 +15,17 @@ public class BusinessAccount extends Account {
     private Map<User, Double> managersDeposited = new HashMap<>();
     private Map<User, Double> employeesSpent = new HashMap<>();
     private Map<User, Double> employeesDeposited = new HashMap<>();
+    private Map<User, Integer> timestampWhenBecameAssociate = new HashMap();
     private UserRepo userRepo;
 
     public BusinessAccount(final String iban, final String currency, final double balance,
                            final User owner, final String accountType, final UserRepo userRepo) {
-        super(iban, currency, balance);
+        super(iban, currency, balance, owner.getEmail(), userRepo);
         this.owner = owner;
         this.managers = new ArrayList<>();
         this.employees = new ArrayList<>();
         this.accountType = accountType;
+        this.userRepo = userRepo;
         if(currency.equals("RON")) {
             this.spendingLimit = 500;
             this.depositLimit = 500;
@@ -36,6 +38,14 @@ public class BusinessAccount extends Account {
 
     private double round2(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    public Map<User, Integer> getTimestampWhenBecameAssociate() {
+        return timestampWhenBecameAssociate;
+    }
+
+    public void addTimestampWhenBecameAssociate(User user, int timestamp) {
+        timestampWhenBecameAssociate.put(user, timestamp);
     }
 
     @Override

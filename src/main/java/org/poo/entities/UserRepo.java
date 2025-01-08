@@ -9,6 +9,7 @@ public final class UserRepo {
     private Map<String, User> users = new LinkedHashMap<>();
     private List<ExchangeRate> exchangeRates = new ArrayList<>();
     private List<Commerciant> comerciants = new ArrayList<>();
+    private List<User> usersInReadOrder = new ArrayList<>();
 
     public UserRepo() {
     }
@@ -31,8 +32,14 @@ public final class UserRepo {
      * @param user utilizatorul care trebuie adaugat
      */
     public void addUser(final User user) {
-        users.put(user.getEmail(), user);
+        if (users.containsKey(user.getEmail())) {
+            usersInReadOrder.add(user);
+        } else {
+            users.put(user.getEmail(), user);
+            usersInReadOrder.add(user);
+        }
     }
+
     /**
      * Gaseste un utilizator dupa email
      * @param email email-ul utilizatorului
@@ -55,11 +62,23 @@ public final class UserRepo {
      * @param to valuta in care se face conversia
      */
     public double getExchangeRate(final String from, final String to) {
-        // apelăm versiunea cu BFS și un set (pentru a evita bucle infinite)
         return getExchangeRateBFS(
                 (from == null ? null : from.toUpperCase()),
                 (to == null ? null : to.toUpperCase())
         );
+    }
+
+    public List<Commerciant> getComerciants() {
+        return comerciants;
+    }
+
+    public Commerciant getCommerciantByAccount(final String account) {
+        for (Commerciant c : comerciants) {
+            if (c.getAccount().equals(account)) {
+                return c;
+            }
+        }
+        return null;
     }
 
     public double getPlanCommissionRate(User user, double transactionAmount) {
@@ -153,6 +172,7 @@ public final class UserRepo {
         }
         return null;
     }
+
     /**
      * Returneaza un utilizator dupa IBAN
      * @param iban IBAN-ul contului
@@ -167,12 +187,14 @@ public final class UserRepo {
         }
         return null;
     }
+
     /**
      * Returneaza toti utilizatorii
      */
     public Collection<User> getAllUsers() {
         return users.values();
     }
+
     /**
      * Returneaza un utilizator dupa numarul de card
      * @param cardNumber numarul de card
@@ -189,6 +211,7 @@ public final class UserRepo {
         }
         return null;
     }
+
     /**
      * Sterge un cont dupa email si IBAN
      * @param email email-ul utilizatorului
@@ -203,23 +226,20 @@ public final class UserRepo {
                 .removeIf(account -> account.getIban().equals(iban)
                         && account.getBalance() == 0);
     }
+
     /**
      * Returneaza un obiect de tip ArrayNode care contine informatii despre utilizatori
      * @param objectMapper obiect de tip ObjectMapper
      */
     public ArrayNode toJson(final ObjectMapper objectMapper) {
         ArrayNode usersArray = objectMapper.createArrayNode();
-        for (User user : users.values()) {
+        for (User user : usersInReadOrder) {
             usersArray.add(user.toJson(objectMapper));
         }
         return usersArray;
     }
-    /**
-     * Afiseaza toti utilizatorii
-     */
-    public void printUsers() {
-        users.values().forEach(System.out::println);
-    }
+
+
     /**
      * Returneaza un cont dupa IBAN
      * @param accountIBAN IBAN-ul contului
@@ -234,6 +254,7 @@ public final class UserRepo {
         }
         return null;
     }
+
 
 
 }

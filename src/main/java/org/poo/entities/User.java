@@ -8,6 +8,7 @@ import org.poo.Observer.Observer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class User {
     private String firstName;
@@ -19,6 +20,9 @@ public final class User {
     private ArrayList<Account> accounts;
     private HashMap<String, String> aliases = new HashMap<>();
     private HashMap<String, Integer> nrOfTransactions = new HashMap<>();
+    private int nrOfTransactionsOver300RON;
+    private Map<String, Boolean> cashbackReceived;
+    private ArrayList<Transaction> transactions = new ArrayList<Transaction>();
     private double totalSpent;
 
 
@@ -35,30 +39,30 @@ public final class User {
         }
         this.accounts = new ArrayList<>();
         this.totalSpent = 0.0;
+        this.cashbackReceived = new HashMap<>();
+        this.nrOfTransactionsOver300RON = 0;
+    }
+
+    public void addTransaction(final Transaction transaction) {
+        transactions.add(transaction);
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
     }
 
     public void addSpent(final double amount) {
         totalSpent += amount;
     }
 
-    public double getTotalSpent() {
-        return totalSpent;
+    public void addNrOfTransactionsOver300RON() {
+        nrOfTransactionsOver300RON++;
     }
 
-    public void incrementTransaction(final String category) {
-        if (nrOfTransactions.containsKey(category)) {
-            nrOfTransactions.put(category, nrOfTransactions.get(category) + 1);
-        } else {
-            nrOfTransactions.put(category, 1);
-        }
+    public int getNrOfTransactionsOver300RON() {
+        return nrOfTransactionsOver300RON;
     }
 
-    public int getNrOfTransactions(final String category) {
-        if(!nrOfTransactions.containsKey(category)) {
-            return 0;
-        }
-        return nrOfTransactions.get(category);
-    }
 
     /**
      * Adauga un cont nou
@@ -171,6 +175,9 @@ public final class User {
 
         ArrayNode accountsArray = objectMapper.createArrayNode();
         for (Account account : accounts) {
+            if(account.getAccountType().equals("business") && ((BusinessAccount)account).getOwner() != this) {
+                continue;
+            }
             accountsArray.add(account.toJson(objectMapper));
         }
         userNode.set("accounts", accountsArray);

@@ -43,6 +43,7 @@ public final class AddInterest implements Command {
         SavingsAccount savingsAccount = (SavingsAccount) account;
         double interestRate = savingsAccount.getInterestRate();
         double interest = savingsAccount.getBalance() * interestRate;
+        interest = Math.round(interest * 100.0) / 100.0;
 
         savingsAccount.setBalance(savingsAccount.getBalance() + interest);
 

@@ -3,7 +3,6 @@ package org.poo.Commands;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.entities.Account;
 import org.poo.entities.SplitPaymentManager;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
@@ -11,17 +10,20 @@ import org.poo.entities.UserRepo;
 public class AcceptSplitPayment implements Command {
     private final String email;
     private final int timestamp;
+    private final String splitPaymentType;
 
     private final SplitPaymentManager splitPaymentManager;
     private final UserRepo userRepo;
 
     public AcceptSplitPayment(final String email,
                               final int timestamp,
+                              final String splitPaymentType,
                               final SplitPaymentManager splitPaymentManager, final UserRepo userRepo) {
         this.email = email;
         this.timestamp = timestamp;
         this.splitPaymentManager = splitPaymentManager;
         this.userRepo = userRepo;
+        this.splitPaymentType = splitPaymentType;
     }
 
     @Override
@@ -48,8 +50,7 @@ public class AcceptSplitPayment implements Command {
             output.add(errorNode);
             return;
         }
-
-        currentPayment.handleAcceptance(email, true, output);
+        currentPayment.handleAcceptance(email, true, output, splitPaymentType);
     }
 
     private ObjectNode createErrorNode(String message) {

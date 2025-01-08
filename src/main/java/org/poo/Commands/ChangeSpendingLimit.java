@@ -26,7 +26,14 @@ public class ChangeSpendingLimit implements Command {
     @Override
     public void execute(ArrayNode output) {
         User user = userRepo.getUser(email);
+        Account account1 = user.getAccount(accountIban);
+        if(account1 == null || account1.getAccountType().equals("classic") || account1.getAccountType().equals("savings")){
+            return;
+        }
         BusinessAccount account = (BusinessAccount)user.getAccount(accountIban);
+        if(account == null) {
+            return;
+        }
         if(account.getOwner() != user) {
             ObjectNode errorOutput = new ObjectMapper().createObjectNode();
             errorOutput.put("description", "You must be owner in order to change spending limit.");
@@ -41,7 +48,6 @@ public class ChangeSpendingLimit implements Command {
             return;
         }
         if (account == null) {
-            System.out.println("Business Account with IBAN " + accountIban + " not found");
             return;
 
         }

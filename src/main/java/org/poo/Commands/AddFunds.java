@@ -29,6 +29,16 @@ class AddFunds implements Command {
 
             Account account = user.getAccount(accountIBAN);
 
+        if(account == null) {
+            return;
+        }
+        if(account.getAccountType().equals("business")) {
+                if(((BusinessAccount)account).getEmployees().contains(user)) {
+                    if(amount > ((BusinessAccount) account).getDepositLimit()) {
+                        return;
+                    }
+                }
+            }
             account.setBalance(account.getBalance() + amount);
 
             if(account.getAccountType().equals("business")) {

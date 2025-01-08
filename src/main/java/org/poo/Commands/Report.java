@@ -109,6 +109,18 @@ public final class Report implements Command {
             }
             transactionNode.set("involvedAccounts", involvedAccountsNode);
         }
+        if(transaction.getNewPlanType() != null) {
+            transactionNode.put("newPlanType", transaction.getNewPlanType());
+        }
+        if(transaction.getAccountIBAN() != null) {
+            transactionNode.put("accountIBAN", transaction.getAccountIBAN());
+        }
+        if(transaction.getSavingsAccountIBAN() != null) {
+            transactionNode.put("savingsAccountIBAN", transaction.getSavingsAccountIBAN());
+        }
+        if(transaction.getClassicAccountIBAN() != null) {
+            transactionNode.put("classicAccountIBAN", transaction.getClassicAccountIBAN());
+        }
         return transactionNode;
     }
 }
