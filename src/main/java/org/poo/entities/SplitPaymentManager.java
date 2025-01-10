@@ -5,18 +5,17 @@ import org.poo.Commands.SplitPayment;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class SplitPaymentManager {
+public final class SplitPaymentManager {
 
     private final Queue<SplitPayment> splitQueue = new LinkedList<>();
 
     public SplitPaymentManager() {
 
     }
-
     /**
      * Adaugă un SplitPayment la finalul cozii.
      */
-    public void addSplitPayment(SplitPayment payment) {
+    public void addSplitPayment(final SplitPayment payment) {
         splitQueue.add(payment);
     }
 
@@ -30,15 +29,8 @@ public class SplitPaymentManager {
     /**
      * Scoate un Payment din coadă (dacă există).
      */
-    public void removeSplitPayment(SplitPayment payment) {
+    public void removeSplitPayment(final SplitPayment payment) {
         splitQueue.remove(payment);
-    }
-
-    /**
-     * Verifică dacă există încă Payment-uri active.
-     */
-    public boolean hasActivePayments() {
-        return !splitQueue.isEmpty();
     }
 
     public Queue<SplitPayment> getSplitPayments() {

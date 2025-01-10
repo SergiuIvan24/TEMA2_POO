@@ -1,6 +1,7 @@
 package org.poo.Commands;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.poo.entities.Account;
 import org.poo.entities.UserRepo;
 
 public final class SetAlias implements Command {
@@ -22,5 +23,7 @@ public final class SetAlias implements Command {
     @Override
     public void execute(final ArrayNode output) {
         userRepo.getUser(email).setAlias(alias, accountIBAN);
+        Account account = userRepo.getUser(email).getAccount(accountIBAN);
+        account.setAlias(alias);
     }
 }

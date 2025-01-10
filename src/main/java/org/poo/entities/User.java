@@ -3,12 +3,13 @@ package org.poo.entities;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.Observer.Observer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class User {
     private String firstName;
@@ -26,13 +27,14 @@ public final class User {
     private double totalSpent;
 
 
-    public User(final String firstName, final String lastName, final String email, final String birthDate, final String occupation) {
+    public User(final String firstName, final String lastName, final String email,
+                final String birthDate, final String occupation) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.birthDate = birthDate;
         this.occupation = occupation;
-        if(occupation.equals("student")) {
+        if (occupation.equals("student")) {
             this.servicePlan = "student";
         } else {
             this.servicePlan = "standard";
@@ -43,26 +45,44 @@ public final class User {
         this.nrOfTransactionsOver300RON = 0;
     }
 
+    /**
+     * Adauga o tranzactie in lista de tranzactii a utilizatorului
+     * @param transaction
+     */
     public void addTransaction(final Transaction transaction) {
         transactions.add(transaction);
     }
 
+    /**
+     * Returneaza tranzactiile utilizatorului
+     * @return
+     */
     public List<Transaction> getTransactions() {
         return transactions;
     }
 
+    /**
+     * Returneaza totalul cheltuit de utilizator
+     * @param amount
+     */
     public void addSpent(final double amount) {
         totalSpent += amount;
     }
 
+    /**
+     * Incrementeaza numarul de tranzactii peste 300RON
+     */
     public void addNrOfTransactionsOver300RON() {
         nrOfTransactionsOver300RON++;
     }
 
+    /**
+     * Returneaza numarul de tranzactii peste 300RON
+     * @return
+     */
     public int getNrOfTransactionsOver300RON() {
         return nrOfTransactionsOver300RON;
     }
-
 
     /**
      * Adauga un cont nou
@@ -174,11 +194,19 @@ public final class User {
         userNode.put("email", email);
 
         ArrayNode accountsArray = objectMapper.createArrayNode();
+        Set<String> seenIban = new HashSet<>();
+
         for (Account account : accounts) {
-            if(account.getAccountType().equals("business") && ((BusinessAccount)account).getOwner() != this) {
+            if (account.getAccountType().equals("business")
+                    && ((BusinessAccount) account).getOwner() != this) {
                 continue;
             }
-            accountsArray.add(account.toJson(objectMapper));
+
+            String iban = account.getIban();
+            if (!seenIban.contains(iban)) {
+                seenIban.add(iban);
+                accountsArray.add(account.toJson(objectMapper));
+            }
         }
         userNode.set("accounts", accountsArray);
 
@@ -189,7 +217,7 @@ public final class User {
         return servicePlan;
     }
 
-    public void setServicePlan(String servicePlan) {
+    public void setServicePlan(final String servicePlan) {
         this.servicePlan = servicePlan;
     }
 
@@ -197,7 +225,7 @@ public final class User {
         return occupation;
     }
 
-    public void setOccupation(String occupation) {
+    public void setOccupation(final String occupation) {
         this.occupation = occupation;
     }
 
@@ -205,18 +233,10 @@ public final class User {
         return birthDate;
     }
 
-    public void setBirthDate(String birthDate) {
+    public void setBirthDate(final String birthDate) {
         this.birthDate = birthDate;
     }
 
-    public boolean hasAccount(final String iban) {
-        for (Account account : accounts) {
-            if (account.getIban().equals(iban)) {
-                return true;
-            }
-        }
-        return false;
-    }
     public String getFullName() {
         return lastName + " " + firstName;
     }

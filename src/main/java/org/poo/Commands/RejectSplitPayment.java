@@ -7,7 +7,7 @@ import org.poo.entities.SplitPaymentManager;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
 
-public class RejectSplitPayment implements Command {
+public final class RejectSplitPayment implements Command {
     private final String email;
     private final int timestamp;
     private final String splitPaymentType;
@@ -35,7 +35,7 @@ public class RejectSplitPayment implements Command {
             return;
         }
         User user = userRepo.getUser(email);
-        if(user == null) {
+        if (user == null) {
             ObjectNode errorNode = new ObjectMapper().createObjectNode();
             errorNode.put("command", "rejectSplitPayment");
 
@@ -49,13 +49,6 @@ public class RejectSplitPayment implements Command {
             output.add(errorNode);
             return;
         }
-        currentPayment.handleAcceptance(email, false, output, splitPaymentType);
-    }
-
-    private ObjectNode createErrorNode(String message) {
-        ObjectNode node = new ObjectMapper().createObjectNode();
-        node.put("timestamp", timestamp);
-        node.put("description", message);
-        return node;
+        currentPayment.Acceptance(email, false, output, splitPaymentType);
     }
 }

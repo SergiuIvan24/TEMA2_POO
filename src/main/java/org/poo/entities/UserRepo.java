@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 
 public final class UserRepo {
+    private final int maxAmount = 500;
+    private final double rate1 = 0.002;
+    private final double rate2 = 0.001;
     private Map<String, User> users = new LinkedHashMap<>();
     private List<ExchangeRate> exchangeRates = new ArrayList<>();
     private List<Commerciant> comerciants = new ArrayList<>();
@@ -14,10 +17,19 @@ public final class UserRepo {
     public UserRepo() {
     }
 
+    /**
+     * Adauga un comerciant in lista de comercianti
+     * @param commerciant
+     */
     public void addCommerciant(final Commerciant commerciant) {
         comerciants.add(commerciant);
     }
 
+    /**
+     * Returneaza un comerciant dupa nume
+     * @param name
+     * @return
+     */
     public Commerciant getCommerciant(final String name) {
         for (Commerciant commerciant : comerciants) {
             if (commerciant.getCommerciant().equals(name)) {
@@ -68,10 +80,19 @@ public final class UserRepo {
         );
     }
 
+    /**
+     * Returneaza lista de comercianti
+     * @return
+     */
     public List<Commerciant> getComerciants() {
         return comerciants;
     }
 
+    /**
+     * Returneaza un comerciant dupa cont
+     * @param account
+     * @return
+     */
     public Commerciant getCommerciantByAccount(final String account) {
         for (Commerciant c : comerciants) {
             if (c.getAccount().equals(account)) {
@@ -81,20 +102,27 @@ public final class UserRepo {
         return null;
     }
 
-    public double getPlanCommissionRate(User user, double transactionAmount) {
+    /**
+     * Returneaza rata de comision pentru un utilizator
+     * @param user
+     * @param transactionAmount
+     * @return
+     */
+    public double getPlanCommissionRate(final User user,
+                                        final double transactionAmount) {
         String plan = user.getServicePlan().toLowerCase();
         switch (plan) {
             case "standard":
-                return 0.002;
+                return rate1;
 
             case "student":
                 return 0.0;
 
             case "silver":
-                if (transactionAmount < 500) {
+                if (transactionAmount < maxAmount) {
                     return 0.0;
                 } else {
-                    return 0.001;
+                    return rate2;
                 }
 
             case "gold":
@@ -105,7 +133,13 @@ public final class UserRepo {
         }
     }
 
-    private double getExchangeRateBFS(String from, String to) {
+    /**
+     * Returneaza rata de schimb dintre doua valute folosind BFS
+     * @param from
+     * @param to
+     * @return
+     */
+    private double getExchangeRateBFS(final String from, final String to) {
         if (from == null || to == null) {
             throw new IllegalArgumentException("Currency values cannot be null");
         }
@@ -170,6 +204,7 @@ public final class UserRepo {
                 }
             }
         }
+        System.out.println("IBAN not found for alias " + alias);
         return null;
     }
 

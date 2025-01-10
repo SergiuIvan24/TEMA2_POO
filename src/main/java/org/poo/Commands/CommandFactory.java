@@ -27,12 +27,12 @@ public final class CommandFactory {
     }
 
     /**
-     * Creates a command based on the provided command type and data.
+     * Creeaza o comanda de tipul specificat
      *
-     * @param commandType the type of command to create
-     * @param commandData the data required to create the command
-     * @return the created command
-     * @throws IllegalArgumentException if the command type is invalid
+     * @param commandType tipul comenzii
+     * @param commandData datele comenzii
+     * @return comanda creata
+     * @throws IllegalArgumentException daca tipul comenzii este invalid
      */
 
     public Command createCommand(final String commandType, final JsonNode commandData) {
@@ -223,7 +223,8 @@ public final class CommandFactory {
                         userRepo
                 );
                 case "cashWithdrawal":
-                    String email = commandData.has("email") ? commandData.get("email").asText() : "unknown";
+                    String email = commandData.has("email")
+                            ? commandData.get("email").asText() : "unknown";
                     return new CashWithdrawal(
                         commandData.get("cardNumber").asText(),
                         commandData.get("amount").asDouble(),

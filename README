@@ -1,0 +1,40 @@
+    Am implementat aplicatia de banking plecand de la clasa Bank, care se ocupa de preluarea datelor initiale din fisierele
+de input precum utilizatori, exchange rates, si comenzi. Ne folosim de clasa UserRepo care stocheaza utilizatorii dar
+si comenzi specifice pt utilizatori pentru a salva datele extrase din fisierele de input.
+    Comenzile efective le am implementat cu ajutorul design patternului FACTORY, avand interfata Command cu metoda execute,
+pe care am implementat-o dupa caz. In clasa CommandFactory se construia comanda in functie de ce input se primea pentru
+ea. Pentru fiecare comanda a fost necesara crearea unei clase, pentru o buna structurare a codului, si pentru a
+facilicta eventuala extindere a acestuia.
+    Am implementat in pachetul "entities" toate clasele necesare aplicatiei precum user, card (unde se disting 2 tipuri
+de card diferite), account(unde sunt tot 2 tipuri), exchangeRate, transaction. Una din clasele de baza ale aplicatiei
+este clasa UserRepo care se ocupa de operatii specifice pe utilizatori, dar si de salvarea exchangeRate-urilor si a
+tuturor utilizatorilor.
+    Tranzactiile au fost implementate folosind design-patternul BUILDER, facand astfel usor de variat modul in care o
+tranzactie arata, formatul lor putand sa difere radical. Pentru fiecare cont, am salvat actiunile identificate ca
+tranzactii intr-un ArrayList de tranzactii, care e afisat daca e cazul (printTransactions).
+    In clasa User, am salvat ca HashMap aliasurile pentru a face mai facila asocierea intre alias si ibanul contului
+respectiv.
+    In implementarea etapei 2, am adaugat un mod de calculare a cashbackului, folosind design patternul STRATEGY,
+care imi permite sa schimb modul de calculare a cashbackului fara a schimba radical codul existent. Interfata
+"CashbackStrategy" este implementata de clasele ce reprezinta fiecare tip de cashback, iar clasa procesor se ocupa de
+aplicarea unuia dintre cele 2 tipuri. Am calculat cashbackul de tipul spendingThreshold in functie de planul fiecarui
+utilizator, iar cashbackul de tipul nrOfTransactions l-am calculat contorizand numarul de plati pt fiecare comerciant de
+acest tip, si aplicand reducerea specifica numarului de tranzactii si categoriei comerciantului, pastrand eventualul comision
+intr-un hashmap pendingCategoryDiscounts, urmand sa fie aplicat cand se intalneste un comerciant valid sa beneficieze de
+reducere.
+    In plus, am implementat si calculul comisionului, in functie de planul fiecarui user, metoda de aflare a planului
+si a procentului de comision aflandu-se tot in clasa UserRepo.
+    Noua implementare a functiei de Split consta in crearea unei clase SplitPaymentManager care tine evidenta tuturor
+comenzilor de split date, acestea fiind bagate intr o coada care asigura executarea pe rand a lor. Raspunsurile userilor
+implicati intr un split sunt salvate intr un hashmap, indiferent daca splitul pentru care se da accept sau reject este
+cel curent sau nu, avand o metoda de cautare a splitului corect in functie de tipul lui si de contul implicat, iar la
+fiecare accept se verifica daca toti userii au acceptat.
+In momentul in care unul refuza, deja se notifica restul de refuzul acestuia. Cand functia allAccepted() returneaza true,
+se verifica in metoda doSuccesPayment daca toti cei implicati au suficiente fonduri, si se elimina din coada de split
+splitul curent.
+    Am implementat si contul de business cu toate functionalitatile specifice, precum si noul tip de raport "BusinessReport".
+Pentru asta, salvam la fiecare tranzactie la care participa un cont de business, initiatorul tranzactiei, urmand sa il
+folosim in extragerea tranzactiilor relevante pentru raport, si adaugand la suma cheltuita/depusa de fiecare initiator
+amountul tranzactiei respective.
+    In plus, am folosit design patternul SINGLETON pentru a asigura ca o singura instanta a clasei Bank exista in aplicatie,
+aceasta fiind un manager central al intregii aplicatii.

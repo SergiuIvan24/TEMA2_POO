@@ -1,13 +1,16 @@
 package org.poo.entities;
 
-public class Commerciant {
+public final class Commerciant {
     private String commerciant;
     private int id;
     private String account;
     private String type;
     private String cashbackStrategy;
 
-    public Commerciant(String commerciant, int id, String account, String type, String cashbackStrategy) {
+    public Commerciant(final String commerciant, final int id,
+                       final String account,
+                       final String type,
+                       final String cashbackStrategy) {
         this.commerciant = commerciant;
         this.id = id;
         this.account = account;
@@ -19,7 +22,7 @@ public class Commerciant {
         return commerciant;
     }
 
-    public void setCommerciant(String commerciant) {
+    public void setCommerciant(final String commerciant) {
         this.commerciant = commerciant;
     }
 
@@ -27,7 +30,7 @@ public class Commerciant {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(final int id) {
         this.id = id;
     }
 
@@ -35,7 +38,7 @@ public class Commerciant {
         return account;
     }
 
-    public void setAccount(String account) {
+    public void setAccount(final String account) {
         this.account = account;
     }
 
@@ -43,7 +46,7 @@ public class Commerciant {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -51,7 +54,7 @@ public class Commerciant {
         return cashbackStrategy;
     }
 
-    public void setCashbackStrategy(String cashbackStrategy) {
+    public void setCashbackStrategy(final String cashbackStrategy) {
         this.cashbackStrategy = cashbackStrategy;
     }
 }

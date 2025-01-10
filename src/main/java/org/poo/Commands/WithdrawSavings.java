@@ -8,7 +8,8 @@ import org.poo.entities.UserRepo;
 import java.time.LocalDate;
 import java.time.Period;
 
-public class WithdrawSavings implements Command {
+public final class WithdrawSavings implements Command {
+    private static final int MINIMUM_AGE = 21;
     private String accountIban;
     private double amount;
     private String currency;
@@ -26,7 +27,7 @@ public class WithdrawSavings implements Command {
     }
 
     @Override
-    public void execute(ArrayNode output) {
+    public void execute(final ArrayNode output) {
         User user = userRepo.getUserByIBAN(accountIban);
         if (user == null) {
             return;
@@ -34,10 +35,6 @@ public class WithdrawSavings implements Command {
 
         Account savingsAccount = user.getAccount(accountIban);
         if (savingsAccount == null) {
-            Transaction errorTransaction = new Transaction.Builder()
-                    .setTimestamp(timestamp)
-                    .setDescription("Account not found")
-                    .build();
             return;
         }
 
@@ -79,7 +76,8 @@ public class WithdrawSavings implements Command {
             return;
         }
 
-        double amountInSavingsCurrency = amount * userRepo.getExchangeRate(currency, savingsAccount.getCurrency());
+        double amountInSavingsCurrency = amount
+                * userRepo.getExchangeRate(currency, savingsAccount.getCurrency());
         double amountInRON = amount * userRepo.getExchangeRate(currency, "RON");
         double totalAmountWithCommission = amountInSavingsCurrency;
 
@@ -107,13 +105,13 @@ public class WithdrawSavings implements Command {
         classicAccount.addTransaction(successTransaction);
     }
 
-    private boolean hasMinimumAge(User user) {
+    private boolean hasMinimumAge(final User user) {
         LocalDate birth = LocalDate.parse(user.getBirthDate());
         LocalDate now = LocalDate.now();
-        return Period.between(birth, now).getYears() >= 21;
+        return Period.between(birth, now).getYears() >= MINIMUM_AGE;
     }
 
-    private Account findClassicAccount(User user, String currency) {
+    private Account findClassicAccount(final User user, final String currency) {
         for (Account account : user.getAccounts()) {
             if (account.getAccountType().equals("classic")
                     && account.getCurrency().equals(currency)) {

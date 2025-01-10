@@ -158,165 +158,200 @@ public final class Transaction {
         private List<Double> amountForUsers;
         private User initiator;
 
-        public Builder setInitiator(final User initiator) {
-            this.initiator = initiator;
+        /**
+         * Seteaza initiatorul tranzactiei.
+         * @param newInitiator
+         * @return
+         */
+        public Builder setInitiator(final User newInitiator) {
+            this.initiator = newInitiator;
             return this;
         }
 
-        public Builder setAmountForUsers(final List<Double> amountForUsers) {
-            this.amountForUsers = amountForUsers;
+        /**
+         * Seteaza amountul pentru useri.
+         * @param newAmountForUsers
+         * @return
+         */
+        public Builder setAmountForUsers(final List<Double> newAmountForUsers) {
+            this.amountForUsers = newAmountForUsers;
             return this;
         }
 
-        public Builder setSplitPaymentType(final String splitPaymentType) {
-            this.splitPaymentType = splitPaymentType;
+        /**
+         * Seteaza tipul de plata pentru split.
+         * @param newSplitPaymentType
+         * @return
+         */
+        public Builder setSplitPaymentType(final String newSplitPaymentType) {
+            this.splitPaymentType = newSplitPaymentType;
             return this;
         }
 
-        public Builder setAccountIban(final String accountIBAN) {
-            this.accountIBAN = accountIBAN;
+        /**
+         * Seteaza IBAN-ul contului.
+         * @param newAccountIBAN
+         * @return
+         */
+        public Builder setAccountIban(final String newAccountIBAN) {
+            this.accountIBAN = newAccountIBAN;
             return this;
         }
 
-        public Builder setClassicAccountIBAN(final String classicAccountIBAN) {
-            this.classicAccountIBAN = classicAccountIBAN;
+        /**
+         * Seteaza ibanul pentru contul clasic.
+         * @param newClassicAccountIBAN
+         * @return
+         */
+        public Builder setClassicAccountIBAN(final String newClassicAccountIBAN) {
+            this.classicAccountIBAN = newClassicAccountIBAN;
             return this;
         }
 
-        public Builder setSavingsAccountIBAN(final String savingsAccountIBAN) {
-            this.savingsAccountIBAN = savingsAccountIBAN;
+        /**
+         * Seteaza ibanul pentru contul de economii.
+         * @param newSavingsAccountIBAN
+         * @return
+         */
+        public Builder setSavingsAccountIBAN(final String newSavingsAccountIBAN) {
+            this.savingsAccountIBAN = newSavingsAccountIBAN;
             return this;
         }
 
-        public Builder setNewPlanType(final String newPlanType) {
-            this.newPlanType = newPlanType;
+        /**
+         * Seteaza noul plan de economii.
+         * @param newPlanType1
+         * @return
+         */
+        public Builder setNewPlanType(final String newPlanType1) {
+            this.newPlanType = newPlanType1;
             return this;
         }
 
         /**
          * Seteaza timestamp-ul tranzactiei.
-         * @param timestamp
+         * @param newTimestamp
          * @return
          */
-        public Builder setTimestamp(final int timestamp) {
-            this.timestamp = timestamp;
+        public Builder setTimestamp(final int newTimestamp) {
+            this.timestamp = newTimestamp;
             return this;
         }
         /**
          * Seteaza eroarea tranzactiei.
-         * @param error
+         * @param newError
          * @return
          */
-        public Builder setError(final String error) {
-            this.error = error;
+        public Builder setError(final String newError) {
+            this.error = newError;
             return this;
         }
         /**
          * Seteaza descrierea tranzactiei.
-         * @param description
+         * @param newDescription
          * @return
          */
-        public Builder setDescription(final String description) {
-            this.description = description;
+        public Builder setDescription(final String newDescription) {
+            this.description = newDescription;
             return this;
         }
         /**
          * Seteaza IBAN-ul expeditorului.
-         * @param senderIBAN
+         * @param newSenderIBAN
          * @return
          */
-        public Builder setSenderIBAN(final String senderIBAN) {
-            this.senderIBAN = senderIBAN;
+        public Builder setSenderIBAN(final String newSenderIBAN) {
+            this.senderIBAN = newSenderIBAN;
             return this;
         }
         /**
          * Seteaza IBAN-ul destinatarului.
-         * @param receiverIBAN
+         * @param newReceiverIBAN
          * @return
          */
-        public Builder setReceiverIBAN(final String receiverIBAN) {
-            this.receiverIBAN = receiverIBAN;
+        public Builder setReceiverIBAN(final String newReceiverIBAN) {
+            this.receiverIBAN = newReceiverIBAN;
             return this;
         }
         /**
          * Seteaza suma tranzactiei.
-         * @param amount
+         * @param newAmount
          * @return
          */
-        public Builder setAmount(final double amount) {
-            this.amount = amount;
+        public Builder setAmount(final double newAmount) {
+            this.amount = newAmount;
             return this;
         }
         /**
          * Seteaza valuta tranzactiei.
-         * @param currency
+         * @param newCurrency
          * @return
          */
-        public Builder setCurrency(final String currency) {
-            this.currency = currency;
+        public Builder setCurrency(final String newCurrency) {
+            this.currency = newCurrency;
             return this;
         }
         /**
          * Seteaza tipul tranzactiei.
-         * @param transferType
+         * @param newTransferType
          * @return
          */
-        public Builder setTransferType(final String transferType) {
-            this.transferType = transferType;
+        public Builder setTransferType(final String newTransferType) {
+            this.transferType = newTransferType;
             return this;
         }
         /**
          * Seteaza cardul tranzactiei.
-         * @param card
+         * @param newCard
          * @return
          */
-        public Builder setCard(final String card) {
-            this.card = card;
+        public Builder setCard(final String newCard) {
+            this.card = newCard;
             return this;
         }
         /**
          * Seteaza detinatorul cardului.
-         * @param cardHolder
+         * @param newCardHolder
          * @return
          */
-        public Builder setCardHolder(final String cardHolder) {
-            this.cardHolder = cardHolder;
+        public Builder setCardHolder(final String newCardHolder) {
+            this.cardHolder = newCardHolder;
             return this;
         }
         /**
          * Seteaza contul tranzactiei.
-         * @param account
+         * @param newAccount
          * @return
          */
-        public Builder setAccount(final String account) {
-            this.account = account;
+        public Builder setAccount(final String newAccount) {
+            this.account = newAccount;
             return this;
         }
         /**
          * Seteaza comerciantul tranzactiei.
-         * @param commerciant
+         * @param newCommerciant
          * @return
          */
-        public Builder setCommerciant(final String commerciant) {
-            this.commerciant = commerciant;
+        public Builder setCommerciant(final String newCommerciant) {
+            this.commerciant = newCommerciant;
             return this;
         }
         /**
          * Seteaza suma si valuta tranzactiei ca un string.
-         * @param amountPlusCurrency
+         * @param newAmountPlusCurrency
          * @return
          */
-        public Builder setAmountPlusCurrency(final String amountPlusCurrency) {
-            this.amountPlusCurrency = amountPlusCurrency;
+        public Builder setAmountPlusCurrency(final String newAmountPlusCurrency) {
+            this.amountPlusCurrency = newAmountPlusCurrency;
             return this;
         }
         /**
          * Seteaza conturile implicate in tranzactie(pt split).
-         * @param involvedAccounts
+         * @param newInvolvedAccounts
          * @return
          */
-        public Builder setInvolvedAccounts(final List<String> involvedAccounts) {
-            this.involvedAccounts = involvedAccounts;
+        public Builder setInvolvedAccounts(final List<String> newInvolvedAccounts) {
+            this.involvedAccounts = newInvolvedAccounts;
             return this;
         }
         /**

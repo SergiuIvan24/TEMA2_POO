@@ -1,35 +1,46 @@
 package org.poo.Cashback;
 
 import org.poo.entities.Account;
+import org.poo.entities.UserRepo;
 
 
-public class SpendingThreshold implements CashbackStrategy {
+public final class SpendingThreshold implements CashbackStrategy {
+    private final int amount1 = 500;
+    private final int amount2 = 300;
+    private final int amount3 = 100;
+    private final double rate1ForGold = 0.007;
+    private final double rate2ForGold = 0.0055;
+    private final double rate3ForGold = 0.005;
+    private final double rate1ForSilver = 0.005;
+    private final double rate2ForSilver = 0.004;
+    private final double rate3ForSilver = 0.003;
+    private final double rate1ForStandard = 0.0025;
+    private final double rate2ForStandard = 0.002;
+    private final double rate3ForStandard = 0.001;
     @Override
-    public double calculateCashback(Account account, String category, double transactionAmount) {
+    public double calculateCashback(final Account account,
+                                    final String category,
+                                    final double transactionAmount,
+                                    final UserRepo userRepo) {
         double totalSpentForThisMerchant = account.getSpentForMerchant(category);
 
         String plan = account.getUserRepo().getUser(account.getEmail()).getServicePlan();
 
         double rate = 0.0;
 
-        if (totalSpentForThisMerchant >= 500
-                && !account.hasReceivedCashback(category + "_500RON")) {
-            rate = getRate(plan, 0.0025, 0.005, 0.007);
-            account.markCashbackReceived(category + "_500RON");
-        } else if (totalSpentForThisMerchant >= 300
-                && !account.hasReceivedCashback(category + "_300RON")) {
-            rate = getRate(plan, 0.002, 0.004, 0.0055);
-            account.markCashbackReceived(category + "_300RON");
-        } else if (totalSpentForThisMerchant >= 100
-                && !account.hasReceivedCashback(category + "_100RON")) {
-            rate = getRate(plan, 0.001, 0.003, 0.005);
-            account.markCashbackReceived(category + "_100RON");
+        if (totalSpentForThisMerchant >= amount1) {
+            rate = getRate(plan, rate1ForStandard, rate1ForSilver, rate1ForGold);
+        } else if (totalSpentForThisMerchant >= amount2) {
+            rate = getRate(plan, rate2ForStandard, rate2ForSilver, rate2ForGold);
+        } else if (totalSpentForThisMerchant >= amount3) {
+            rate = getRate(plan, rate3ForStandard, rate3ForSilver, rate3ForGold);
         }
-
         return transactionAmount * rate;
     }
 
-    private double getRate(String plan, double standardRate, double silverRate, double goldRate) {
+    private double getRate(final String plan, final double standardRate,
+                           final double silverRate,
+                           final double goldRate) {
         return switch (plan) {
             case "standard", "student" -> standardRate;
             case "silver" -> silverRate;

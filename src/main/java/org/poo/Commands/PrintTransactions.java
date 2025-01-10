@@ -34,7 +34,7 @@ public final class PrintTransactions implements Command {
 
         List<Transaction> allTransactions = new ArrayList<>();
         for (Account account : user.getAccounts()) {
-            if(!account.getAccountType().equals("business")) {
+            if (!account.getAccountType().equals("business")) {
                 allTransactions.addAll(account.getTransactions());
                 continue;
             }
@@ -71,10 +71,10 @@ public final class PrintTransactions implements Command {
             transactionNode.put("timestamp", transaction.getTimestamp());
             transactionNode.put("description", transaction.getDescription());
 
-            if(transaction.getNewPlanType() != null) {
+            if (transaction.getNewPlanType() != null) {
                 transactionNode.put("newPlanType", transaction.getNewPlanType());
             }
-            if(transaction.getAccountIBAN() != null) {
+            if (transaction.getAccountIBAN() != null) {
                 transactionNode.put("accountIBAN", transaction.getAccountIBAN());
             }
             if (transaction.getSenderIBAN() != null) {
@@ -118,10 +118,10 @@ public final class PrintTransactions implements Command {
                 }
                 transactionNode.set("involvedAccounts", involvedAccountsNode);
             }
-            if(transaction.getSavingsAccountIBAN() != null) {
+            if (transaction.getSavingsAccountIBAN() != null) {
                 transactionNode.put("savingsAccountIBAN", transaction.getSavingsAccountIBAN());
             }
-            if(transaction.getClassicAccountIBAN() != null) {
+            if (transaction.getClassicAccountIBAN() != null) {
                 transactionNode.put("classicAccountIBAN", transaction.getClassicAccountIBAN());
             }
             if (transaction.getAmountForUsers() != null) {
@@ -129,9 +129,9 @@ public final class PrintTransactions implements Command {
                 for (Double amountForUser : transaction.getAmountForUsers()) {
                     amountForUsersNode.add(amountForUser);
                 }
-                transactionNode.set("amountForUsers", amountForUsersNode); // Adaugă nodul în `transactionNode`
+                transactionNode.set("amountForUsers", amountForUsersNode);
             }
-            if(transaction.getSplitPaymentType() != null) {
+            if (transaction.getSplitPaymentType() != null) {
                 transactionNode.put("splitPaymentType", transaction.getSplitPaymentType());
             }
 
@@ -143,7 +143,3 @@ public final class PrintTransactions implements Command {
         output.add(resultNode);
     }
 }
-
-
-
-

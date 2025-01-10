@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BusinessAccount extends Account {
+public final class BusinessAccount extends Account {
+    private static final int DEFAULT_LIMIT = 500;
+
     private User owner;
     private ArrayList<User> managers;
     private ArrayList<User> employees;
@@ -15,7 +17,7 @@ public class BusinessAccount extends Account {
     private Map<User, Double> managersDeposited = new HashMap<>();
     private Map<User, Double> employeesSpent = new HashMap<>();
     private Map<User, Double> employeesDeposited = new HashMap<>();
-    private Map<User, Integer> timestampWhenBecameAssociate = new HashMap();
+    private Map<User, Integer> timestampWhenBecameAssociate = new HashMap<>();
     private UserRepo userRepo;
 
     public BusinessAccount(final String iban, final String currency, final double balance,
@@ -26,25 +28,32 @@ public class BusinessAccount extends Account {
         this.employees = new ArrayList<>();
         this.accountType = accountType;
         this.userRepo = userRepo;
-        if(currency.equals("RON")) {
-            this.spendingLimit = 500;
-            this.depositLimit = 500;
+        if (currency.equals("RON")) {
+            this.spendingLimit = DEFAULT_LIMIT;
+            this.depositLimit = DEFAULT_LIMIT;
         } else {
             double conversionRate = userRepo.getExchangeRate("RON", currency);
-            this.spendingLimit = round2(500 * conversionRate);
-            this.depositLimit = round2(500 * conversionRate);
+            this.spendingLimit = DEFAULT_LIMIT * conversionRate;
+            this.depositLimit = DEFAULT_LIMIT * conversionRate;
         }
     }
 
-    private double round2(double value) {
-        return Math.round(value * 100.0) / 100.0;
-    }
-
+    /**
+     * Returneaza timestamp-ul cand un user a devenit asociat.
+     *
+     * @return timestamp-ul cand un user a devenit asociat
+     */
     public Map<User, Integer> getTimestampWhenBecameAssociate() {
         return timestampWhenBecameAssociate;
     }
 
-    public void addTimestampWhenBecameAssociate(User user, int timestamp) {
+    /**
+     * Adauga timestamp-ul cand un user a devenit asociat.
+     *
+     * @param user      the user
+     * @param timestamp the timestamp
+     */
+    public void addTimestampWhenBecameAssociate(final User user, final int timestamp) {
         timestampWhenBecameAssociate.put(user, timestamp);
     }
 
@@ -57,7 +66,7 @@ public class BusinessAccount extends Account {
         return owner;
     }
 
-    public void setOwner(User owner) {
+    public void setOwner(final User owner) {
         this.owner = owner;
     }
 
@@ -65,7 +74,7 @@ public class BusinessAccount extends Account {
         return managers;
     }
 
-    public void setManagers(ArrayList<User> managers) {
+    public void setManagers(final ArrayList<User> managers) {
         this.managers = managers;
     }
 
@@ -73,60 +82,97 @@ public class BusinessAccount extends Account {
         return employees;
     }
 
-    public void setEmployees(ArrayList<User> employees) {
+    public void setEmployees(final ArrayList<User> employees) {
         this.employees = employees;
     }
 
-    public void addEmployee(User employee) {
+    /**
+     * Adauga un angajat in lista de angajati.
+     * @param employee
+     */
+    public void addEmployee(final User employee) {
         this.employees.add(employee);
     }
 
-    public void addManager(User manager) {
+    /**
+     * Adauga un manager in lista de manageri.
+     * @param manager
+     */
+    public void addManager(final User manager) {
         this.managers.add(manager);
     }
 
-    public void removeEmployee(User employee) {
+    /**
+     * Sterge un angajat din lista de angajati.
+     * @param employee
+     */
+    public void removeEmployee(final User employee) {
         this.employees.remove(employee);
     }
 
-    public void removeManager(User manager) {
+    /**
+     * Sterge un manager din lista de manageri.
+     * @param manager
+     */
+    public void removeManager(final User manager) {
         this.managers.remove(manager);
     }
 
+    /**
+     * Returneaza limita de cheltuieli.
+     * @return
+     */
     public double getSpendingLimit() {
         return spendingLimit;
     }
 
-    public void setSpendingLimit(double spendingLimit) {
+    /**
+     * Seteaza limita de cheltuieli.
+     * @param spendingLimit
+     */
+    public void setSpendingLimit(final double spendingLimit) {
         this.spendingLimit = spendingLimit;
     }
 
+    /**
+     * Returneaza limita de depunere.
+     * @return
+     */
     public double getDepositLimit() {
         return depositLimit;
     }
 
-    public void setDepositLimit(double depositLimit) {
+    /**
+     * Seteaza limita de depunere.
+     * @param depositLimit
+     */
+    public void setDepositLimit(final double depositLimit) {
         this.depositLimit = depositLimit;
     }
 
-    @Override
-    public void update(boolean accepted) {
-        return;
-    }
-
-    public void setAccountType(String accountType) {
+    public void setAccountType(final String accountType) {
         this.accountType = accountType;
     }
 
-    public void addManagerDeposit(User user, double amount) {
+    /**
+     * Adauga o suma la depozitul unui manager.
+     * @param user
+     * @param amount
+     */
+    public void addManagerDeposit(final User user, final double amount) {
         if (managersDeposited.containsKey(user)) {
             managersDeposited.put(user, managersDeposited.get(user) + amount);
         } else {
             managersDeposited.put(user, amount);
-           }
+        }
     }
 
-    public void addEmployeeDeposit(User user, double amount) {
+    /**
+     * Adauga o suma la depozitul unui angajat.
+     * @param user
+     * @param amount
+     */
+    public void addEmployeeDeposit(final User user, final double amount) {
         if (employeesDeposited.containsKey(user)) {
             employeesDeposited.put(user, employeesDeposited.get(user) + amount);
         } else {
@@ -134,7 +180,12 @@ public class BusinessAccount extends Account {
         }
     }
 
-    public void addManagerSpent(User user, double amount) {
+    /**
+     * Adauga o suma la cheltuielile unui manager.
+     * @param user
+     * @param amount
+     */
+    public void addManagerSpent(final User user, final double amount) {
         if (managersSpent.containsKey(user)) {
             managersSpent.put(user, managersSpent.get(user) + amount);
         } else {
@@ -142,7 +193,12 @@ public class BusinessAccount extends Account {
         }
     }
 
-    public void addEmployeeSpent(User user, double amount) {
+    /**
+     * Adauga o suma la cheltuielile unui angajat.
+     * @param user
+     * @param amount
+     */
+    public void addEmployeeSpent(final User user, final double amount) {
         if (employeesSpent.containsKey(user)) {
             employeesSpent.put(user, employeesSpent.get(user) + amount);
         } else {

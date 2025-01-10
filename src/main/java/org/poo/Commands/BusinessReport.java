@@ -9,12 +9,14 @@ import org.poo.entities.Transaction;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class BusinessReport implements Command {
+public final class BusinessReport implements Command {
     private String type;
     private int startTimestamp;
     private int endTimestamp;
@@ -33,7 +35,7 @@ public class BusinessReport implements Command {
     }
 
     @Override
-    public void execute(ArrayNode output) {
+    public void execute(final ArrayNode output) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode resultNode = objectMapper.createObjectNode();
         resultNode.put("command", "businessReport");
@@ -75,66 +77,69 @@ public class BusinessReport implements Command {
         output.add(resultNode);
     }
 
-    private void generateTransactionReport(BusinessAccount businessAccount, ObjectNode accountDetails) {
+    private void generateTransactionReport(final BusinessAccount businessAccount,
+                                           final ObjectNode accountDetails) {
         ArrayNode managersNode = new ObjectMapper().createArrayNode();
         ArrayNode employeesNode = new ObjectMapper().createArrayNode();
 
         double totalSpent = 0;
         double totalDeposited = 0;
-        for(User employee : businessAccount.getEmployees()) {
-           double spent = 0;
-           double deposited = 0;
-           for(Transaction transaction : businessAccount.getTransactions()) {
-               if(transaction.getTimestamp() < startTimestamp || transaction.getTimestamp() > endTimestamp) {
+        for (User employee : businessAccount.getEmployees()) {
+            double spent = 0;
+            double deposited = 0;
+            for (Transaction transaction : businessAccount.getTransactions()) {
+                if (transaction.getTimestamp() < startTimestamp
+                        || transaction.getTimestamp() > endTimestamp) {
                     continue;
-               }
-               if(transaction.getInitiator() == employee) {
-                     if("sent".equals(transaction.getTransferType())) {
-                          spent += transaction.getAmount();
-                     }
-                     if("received".equals(transaction.getTransferType())) {
-                          deposited += transaction.getAmount();
-                     }
-                    if(transaction.getDescription().equals("Card payment")) {
+                }
+                if (transaction.getInitiator() == employee) {
+                    if ("sent".equals(transaction.getTransferType())) {
+                        spent += transaction.getAmount();
+                    }
+                    if ("received".equals(transaction.getTransferType())) {
+                        deposited += transaction.getAmount();
+                    }
+                    if (transaction.getDescription().equals("Card payment")) {
                         spent += transaction.getAmount();
                     }
                     if (transaction.getDescription().equals("Add funds")) {
                         deposited += transaction.getAmount();
                     }
                 }
-           }
-           totalSpent += spent;
-           totalDeposited += deposited;
+            }
+            totalSpent += spent;
+            totalDeposited += deposited;
             ObjectNode employeeNode = new ObjectMapper().createObjectNode();
             employeeNode.put("spent", spent);
             employeeNode.put("deposited", deposited);
             employeeNode.put("username", employee.getFullName());
             employeesNode.add(employeeNode);
         }
-        for(User manager : businessAccount.getManagers()) {
-           double spent = 0;
-           double deposited = 0;
-           for(Transaction transaction : businessAccount.getTransactions()) {
-               if(transaction.getTimestamp() < startTimestamp || transaction.getTimestamp() > endTimestamp) {
-                   continue;
-               }
-                if(transaction.getInitiator() == manager) {
-                     if("sent".equals(transaction.getTransferType())) {
-                          spent += transaction.getAmount();
-                     }
-                     if("received".equals(transaction.getTransferType())) {
-                          deposited += transaction.getAmount();
-                     }
-                     if(transaction.getDescription().equals("Card payment")) {
-                         spent += transaction.getAmount();
-                     }
-                     if (transaction.getDescription().equals("Add funds")) {
-                         deposited += transaction.getAmount();
-                     }
+        for (User manager : businessAccount.getManagers()) {
+            double spent = 0;
+            double deposited = 0;
+            for (Transaction transaction : businessAccount.getTransactions()) {
+                if (transaction.getTimestamp() < startTimestamp
+                        || transaction.getTimestamp() > endTimestamp) {
+                    continue;
                 }
-           }
-           totalSpent += spent;
-           totalDeposited += deposited;
+                if (transaction.getInitiator() == manager) {
+                    if ("sent".equals(transaction.getTransferType())) {
+                        spent += transaction.getAmount();
+                    }
+                    if ("received".equals(transaction.getTransferType())) {
+                        deposited += transaction.getAmount();
+                    }
+                    if (transaction.getDescription().equals("Card payment")) {
+                        spent += transaction.getAmount();
+                    }
+                    if (transaction.getDescription().equals("Add funds")) {
+                        deposited += transaction.getAmount();
+                    }
+                }
+            }
+            totalSpent += spent;
+            totalDeposited += deposited;
             ObjectNode managerNode = new ObjectMapper().createObjectNode();
             managerNode.put("spent", spent);
             managerNode.put("deposited", deposited);
@@ -149,20 +154,28 @@ public class BusinessReport implements Command {
         accountDetails.put("statistics type", "transaction");
     }
 
-    private void generateCommerciantReport(BusinessAccount businessAccount, ObjectNode accountDetails) {
+    private void generateCommerciantReport(final BusinessAccount businessAccount,
+                                           final ObjectNode accountDetails) {
         ArrayNode commerciantsNode = new ObjectMapper().createArrayNode();
         Map<String, CommerciantData> commerciants = new HashMap<>();
 
         for (Transaction transaction : businessAccount.getTransactions()) {
-            if (transaction.getTimestamp() < startTimestamp || transaction.getTimestamp() > endTimestamp) {
+            if (transaction.getTimestamp() < startTimestamp
+                    || transaction.getTimestamp() > endTimestamp) {
                 continue;
             }
 
             String commerciant = transaction.getCommerciant();
-            if (commerciant == null) continue;
+            if (commerciant == null) {
+                continue;
+            }
 
-            CommerciantData data = commerciants.computeIfAbsent(commerciant, k -> new CommerciantData());
-            data.totalReceived += transaction.getAmount();
+            CommerciantData data = commerciants.computeIfAbsent(commerciant,
+                    k -> new CommerciantData());
+            if (businessAccount.getEmployees().contains(transaction.getInitiator())
+                    || businessAccount.getManagers().contains(transaction.getInitiator())) {
+                data.totalReceived += transaction.getAmount();
+            }
 
             User initiator = transaction.getInitiator();
             if (initiator != null) {
@@ -174,12 +187,20 @@ public class BusinessReport implements Command {
             }
         }
 
-        for (Map.Entry<String, CommerciantData> entry : commerciants.entrySet()) {
+        List<Map.Entry<String, CommerciantData>> sortedCommerciants =
+                new ArrayList<>(commerciants.entrySet());
+
+        sortedCommerciants.sort(Map.Entry.comparingByKey());
+
+        for (Map.Entry<String, CommerciantData> entry : sortedCommerciants) {
             ObjectNode commerciantNode = new ObjectMapper().createObjectNode();
             commerciantNode.put("commerciant", entry.getKey());
-            commerciantNode.put("totalReceived", entry.getValue().totalReceived);
-            commerciantNode.set("managers", new ObjectMapper().valueToTree(entry.getValue().managers));
-            commerciantNode.set("employees", new ObjectMapper().valueToTree(entry.getValue().employees));
+            commerciantNode.put("total received", entry.getValue().getTotalReceived());
+
+            commerciantNode.set("managers", new ObjectMapper()
+                    .valueToTree(entry.getValue().getManagers()));
+            commerciantNode.set("employees", new ObjectMapper()
+                    .valueToTree(entry.getValue().getEmployees()));
 
             commerciantsNode.add(commerciantNode);
         }
@@ -188,9 +209,21 @@ public class BusinessReport implements Command {
         accountDetails.put("statistics type", "commerciant");
     }
 
-    private static class CommerciantData {
-        double totalReceived = 0;
-        Set<String> managers = new TreeSet<>();
-        Set<String> employees = new TreeSet<>();
+    private static final class CommerciantData {
+        private double totalReceived = 0;
+        private final Set<String> managers = new TreeSet<>();
+        private final Set<String> employees = new TreeSet<>();
+
+        public double getTotalReceived() {
+            return totalReceived;
+        }
+
+        public Set<String> getManagers() {
+            return managers;
+        }
+
+        public Set<String> getEmployees() {
+            return employees;
+        }
     }
 }

@@ -10,7 +10,7 @@ import org.poo.entities.Transaction;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
 
-public class CashWithdrawal implements Command {
+public final class CashWithdrawal implements Command {
     private String cardNumber;
     private double amount;
     private String email;
@@ -18,7 +18,8 @@ public class CashWithdrawal implements Command {
     private final int timestamp;
     private UserRepo userRepo;
 
-    public CashWithdrawal(final String cardNumber, final double amount, final String email, final String location,
+    public CashWithdrawal(final String cardNumber, final double amount,
+                          final String email, final String location,
                           final int timestamp, final UserRepo userRepo) {
         this.cardNumber = cardNumber;
         this.amount = amount;
@@ -28,17 +29,13 @@ public class CashWithdrawal implements Command {
         this.userRepo = userRepo;
     }
 
-    private double round2(double value) {
-        return Math.round(value * 100.0) / 100.0;
-    }
-
     @Override
-    public void execute(ArrayNode output) {
+    public void execute(final ArrayNode output) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode response = mapper.createObjectNode();
         ObjectNode commandResponse = mapper.createObjectNode();
 
-        if(email.equals("unknown")) {
+        if (email.equals("unknown")) {
             response.put("description", "User not found");
             response.put("timestamp", timestamp);
             commandResponse.put("command", "cashWithdrawal");
@@ -82,8 +79,8 @@ public class CashWithdrawal implements Command {
         }
 
         if (!userWithCard.getEmail().equals(email)) {
-            response.put("message", "User not found");
-
+            response.put("description", "Card not found");
+            response.put("timestamp", timestamp);
             commandResponse.put("command", "cashWithdrawal");
             commandResponse.set("output", response);
             commandResponse.put("timestamp", timestamp);
@@ -137,7 +134,6 @@ public class CashWithdrawal implements Command {
         double feeRate = userRepo.getPlanCommissionRate(user, amount);
         double feeValue = neededInAccountCurrency * feeRate;
         double totalNeeded = neededInAccountCurrency + feeValue;
-        totalNeeded = round2(totalNeeded);
 
         if (account.getBalance() < totalNeeded) {
             Transaction transaction = new Transaction.Builder()
@@ -148,9 +144,7 @@ public class CashWithdrawal implements Command {
             return;
         }
 
-
-
-        account.setBalance(round2(account.getBalance() - totalNeeded));
+        account.setBalance(account.getBalance() - totalNeeded);
 
         user.addSpent(amount);
 

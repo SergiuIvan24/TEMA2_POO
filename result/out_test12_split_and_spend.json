@@ -445,12 +445,12 @@
   }, {
     "timestamp" : 177,
     "description" : "Card payment",
-    "amount" : 132.44,
+    "amount" : 132.44444444444446,
     "commerciant" : "Zara"
   }, {
     "timestamp" : 211,
     "description" : "Card payment",
-    "amount" : 235.56,
+    "amount" : 235.55555555555557,
     "commerciant" : "Apple"
   } ],
   "timestamp" : 212
@@ -501,7 +501,7 @@
   }, {
     "timestamp" : 163,
     "description" : "Card payment",
-    "amount" : 538.89,
+    "amount" : 538.8888888888889,
     "commerciant" : "Microsoft"
   } ],
   "timestamp" : 218

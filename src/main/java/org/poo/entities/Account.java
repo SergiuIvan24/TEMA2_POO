@@ -3,14 +3,13 @@ package org.poo.entities;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.Observer.Observer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Account implements Observer {
+public abstract class Account {
     private String iban;
     private String currency;
     private double balance;
@@ -24,40 +23,79 @@ public abstract class Account implements Observer {
     private String email;
     private UserRepo userRepo;
     private Map<String, Double> spendingThresholdTotals = new HashMap<>();
+    private Map<String, Double> pendingCategoryDiscounts = new HashMap<>();
 
-    public void addSpendingThresholdTotal(String commerciant, double amount) {
-        this.spendingThresholdTotals.put(commerciant, this.spendingThresholdTotals.getOrDefault(commerciant, 0.0) + amount);
-    }
-
-    public double getSpentForMerchant(String merchant) {
-        return spendingThresholdTotals.getOrDefault(merchant, 0.0);
-    }
-
-    public void addSpent(double amount) {
-        this.totalSpent += amount;
-    }
-
-    public Map<String, Boolean> getCashbackReceived() {
-        return cashbackReceived;
-    }
-
-    public double getTotalSpent() {
-        return this.totalSpent;
-    }
-
-    public void incrementTransaction(String category) {
+    /**
+     * Adauga o tranzactie in lista de tranzactii a contului
+     * @param category
+     */
+    public void incrementNrOfTransactions(final String category) {
         this.nrOfTransactions.put(category, this.nrOfTransactions.getOrDefault(category, 0) + 1);
     }
 
-    public int getNrOfTransactions(String category) {
+    /**
+     * Adauga un discount in asteptare pentru o anumita categorie
+     * @param category
+     * @param amount
+     */
+    public void addPendingCategoryDiscount(final String category, final double amount) {
+        this.pendingCategoryDiscounts.put(category,
+                this.pendingCategoryDiscounts
+                        .getOrDefault(category, 0.0) + amount);
+    }
+
+    /**
+     * Returneaza discountul in asteptare pentru o anumita categorie
+     * @param category
+     * @return
+     */
+    public double getPendingCategoryDiscount(final String category) {
+        return this.pendingCategoryDiscounts.getOrDefault(category, 0.0);
+    }
+
+    /**
+     * Adauga suma cheltuita la totalul cheltuit pe un anumit comerciant
+     * @param commerciant
+     * @param amount
+     */
+    public void addSpendingThresholdTotal(final String commerciant, final double amount) {
+        this.spendingThresholdTotals.put(commerciant,
+                this.spendingThresholdTotals
+                        .getOrDefault(commerciant, 0.0) + amount);
+    }
+
+    /**
+     * Returneaza suma cheltuita pe un anumit comerciant
+     * @param merchant
+     * @return
+     */
+    public double getSpentForMerchant(final String merchant) {
+        return spendingThresholdTotals.getOrDefault(merchant, 0.0);
+    }
+
+    /**
+     * Returneaza numarul de tranzactii efectuate pe un anumit comerciant
+     * @param category
+     * @return
+     */
+    public int getNrOfTransactions(final String category) {
         return this.nrOfTransactions.getOrDefault(category, 0);
     }
 
-    public boolean hasReceivedCashback(String category) {
+    /**
+     * Returneaza daca s-a primit cashback pentru o anumita categorie
+     * @param category
+     * @return
+     */
+    public boolean hasReceivedCashback(final String category) {
         return this.cashbackReceived.getOrDefault(category, false);
     }
 
-    public void markCashbackReceived(String category) {
+    /**
+     * Marcheaza ca s-a primit cashback pentru o anumita categorie
+     * @param category
+     */
+    public void markCashbackReceived(final String category) {
         this.cashbackReceived.put(category, true);
     }
 
@@ -79,29 +117,25 @@ public abstract class Account implements Observer {
                 BusinessAccount businessAccount = (BusinessAccount) this;
                 if (businessAccount.getManagers().contains(initiator)) {
                     if (transaction.getDescription().equals("Card payment")) {
-                        businessAccount.addManagerSpent(initiator, Math.abs(transaction.getAmount()));
+                        businessAccount.addManagerSpent(initiator, transaction.getAmount());
                     } else {
                         businessAccount.addManagerDeposit(initiator, transaction.getAmount());
                     }
-                }
-                else if (businessAccount.getEmployees().contains(initiator)) {
+                } else if (businessAccount.getEmployees().contains(initiator)) {
                     if (transaction.getDescription().equals("Card payment")) {
-                        businessAccount.addEmployeeSpent(initiator, Math.abs(transaction.getAmount()));
+                        businessAccount.addEmployeeSpent(initiator, transaction.getAmount());
                     } else {
                         businessAccount.addEmployeeDeposit(initiator, transaction.getAmount());
                     }
                 } else {
-                    if(initiator == businessAccount.getOwner()) {
-                        System.out.println("DEBUG: Initiator " + initiator.getEmail() + " is the owner of this business account.");
-                    }else {
-                        System.out.println("DEBUG: Initiator " + initiator.getEmail() + " not part of this business account.");
-                    }
+                    return;
                 }
             }
         }
     }
 
-    public Account(final String iban, final String currency, final double balance, final String email, UserRepo userRepo) {
+    public Account(final String iban, final String currency, final double balance,
+                   final String email, final UserRepo userRepo) {
         this.iban = iban;
         this.currency = currency;
         this.balance = balance;
@@ -109,6 +143,11 @@ public abstract class Account implements Observer {
         this.userRepo = userRepo;
         this.nrOfTransactions = new HashMap<>(); // Inițializare în constructor
         this.cashbackReceived = new HashMap<>();
+        this.spendingThresholdTotals = new HashMap<>();
+        this.pendingCategoryDiscounts = new HashMap<>();
+        this.cashbackReceived.put("Food", false);
+        this.cashbackReceived.put("Tech", false);
+        this.cashbackReceived.put("Clothes", false);
     }
 
 
@@ -205,7 +244,7 @@ public abstract class Account implements Observer {
     public ObjectNode toJson(final ObjectMapper objectMapper) {
         ObjectNode accountNode = objectMapper.createObjectNode();
         accountNode.put("IBAN", iban);
-        accountNode.put("balance", Math.round(balance * 100.0) / 100.0);
+        accountNode.put("balance", balance);
         accountNode.put("currency", currency);
         accountNode.put("type", getAccountType());
 
@@ -239,19 +278,27 @@ public abstract class Account implements Observer {
      */
     public abstract String getAccountType();
 
+    /**
+     * Returneaza emailul utilizatorului
+     * @return
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * Returneaza repo-ul de utilizatori
+     * @return
+     */
     public UserRepo getUserRepo() {
         return userRepo;
     }
 
-    public Map<String, Double> getSpendingThresholdTotals() {
-        return spendingThresholdTotals;
-    }
-
-    public void setSpendingThresholdTotals(Map<String, Double> spendingThresholdTotals) {
-        this.spendingThresholdTotals = spendingThresholdTotals;
+    /**
+     * Sterge discountul in asteptare pentru o anumita categorie
+     * @param merchantCategory
+     */
+    public void clearPendingCategoryDiscount(final String merchantCategory) {
+        this.pendingCategoryDiscounts.put(merchantCategory, 0.0);
     }
 }

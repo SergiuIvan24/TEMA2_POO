@@ -32,20 +32,22 @@
 }, {
   "command" : "cashWithdrawal",
   "output" : {
-    "message" : "User not found"
+    "description" : "Card not found",
+    "timestamp" : 79
   },
   "timestamp" : 79
 }, {
   "command" : "cashWithdrawal",
   "output" : {
-    "message" : "User not found"
+    "description" : "Card not found",
+    "timestamp" : 80
   },
   "timestamp" : 80
 }, {
   "command" : "businessReport",
   "output" : {
     "IBAN" : "RO69POOB6209498372540635",
-    "balance" : 2628.06,
+    "balance" : 2628.063,
     "currency" : "RON",
     "spending limit" : 500.0,
     "deposit limit" : 135.0,
@@ -139,7 +141,7 @@
   "command" : "businessReport",
   "output" : {
     "IBAN" : "RO69POOB6209498372540635",
-    "balance" : 5976.49,
+    "balance" : 5976.668575000001,
     "currency" : "RON",
     "spending limit" : 500.0,
     "deposit limit" : 135.0,
@@ -170,30 +172,30 @@
   "command" : "businessReport",
   "output" : {
     "IBAN" : "RO69POOB6209498372540635",
-    "balance" : 5976.49,
+    "balance" : 5976.668575000001,
     "currency" : "RON",
     "spending limit" : 500.0,
     "deposit limit" : 135.0,
     "commerciants" : [ {
-      "commerciant" : "Samsung",
-      "totalReceived" : 342.0,
-      "managers" : [ ],
-      "employees" : [ "Voinea Valentin" ]
-    }, {
-      "commerciant" : "Zara",
-      "totalReceived" : 292.0,
-      "managers" : [ ],
-      "employees" : [ "Voinea Valentin" ]
-    }, {
       "commerciant" : "Amazon",
-      "totalReceived" : 3639.3,
+      "total received" : 220.04999999999998,
       "managers" : [ ],
       "employees" : [ "Voinea Valentin" ]
     }, {
       "commerciant" : "H&M",
-      "totalReceived" : 253.0,
+      "total received" : 253.0,
       "managers" : [ ],
       "employees" : [ "Stanescu Damian" ]
+    }, {
+      "commerciant" : "Samsung",
+      "total received" : 342.0,
+      "managers" : [ ],
+      "employees" : [ "Voinea Valentin" ]
+    }, {
+      "commerciant" : "Zara",
+      "total received" : 292.0,
+      "managers" : [ ],
+      "employees" : [ "Voinea Valentin" ]
     } ],
     "statistics type" : "commerciant"
   },

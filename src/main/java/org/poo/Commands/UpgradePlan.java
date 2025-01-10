@@ -8,16 +8,18 @@ import org.poo.entities.Transaction;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+public final class UpgradePlan implements Command {
+    private static final int FEE_STANDARD_TO_SILVER = 100;
+    private static final int FEE_STANDARD_TO_GOLD = 350;
+    private static final int FEE_SILVER_TO_GOLD = 250;
 
-public class UpgradePlan implements Command {
     private String newPlanType;
     private String accountIBAN;
     private final int timestamp;
-    private UserRepo userRepo;
+    private final UserRepo userRepo;
 
-    public UpgradePlan(final String accountIBAN, final String newPlanType, final int timestamp, UserRepo userRepo) {
+    public UpgradePlan(final String accountIBAN, final String newPlanType,
+                       final int timestamp, final UserRepo userRepo) {
         this.newPlanType = newPlanType;
         this.accountIBAN = accountIBAN;
         this.timestamp = timestamp;
@@ -25,11 +27,10 @@ public class UpgradePlan implements Command {
     }
 
     @Override
-    public void execute(ArrayNode output) {
+    public void execute(final ArrayNode output) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode response = mapper.createObjectNode();
         ObjectNode commandResponse = mapper.createObjectNode();
-
 
         User user = userRepo.getUserByIBAN(accountIBAN);
         if (user == null) {
@@ -76,19 +77,15 @@ public class UpgradePlan implements Command {
         double feeInAccountCurrency = fee / exchangeRate;
 
         if (account.getBalance() < feeInAccountCurrency) {
-           Transaction transaction = new Transaction.Builder()
-                   .setTimestamp(timestamp)
-                   .setDescription("Insufficient funds")
-                   .build();
-              account.addTransaction(transaction);
+            Transaction transaction = new Transaction.Builder()
+                    .setTimestamp(timestamp)
+                    .setDescription("Insufficient funds")
+                    .build();
+            account.addTransaction(transaction);
             return;
         }
 
         double newBalance = account.getBalance() - feeInAccountCurrency;
-
-        newBalance = BigDecimal.valueOf(newBalance)
-                .setScale(2, RoundingMode.HALF_UP)
-                .doubleValue();
 
         account.setBalance(newBalance);
         user.setServicePlan(newPlanType);
@@ -100,18 +97,19 @@ public class UpgradePlan implements Command {
                 .setAccountIban(accountIBAN)
                 .build();
         account.addTransaction(transaction);
-
     }
 
-    private boolean isUpgradeValid(String currentPlan, String newPlanType) {
-        currentPlan = currentPlan.toUpperCase();
-        newPlanType = newPlanType.toUpperCase();
-        switch (currentPlan) {
+    private boolean isUpgradeValid(final String currentPlan,
+                                   final String newPlanType) {
+        String currentPlanUpper = currentPlan.toUpperCase();
+        String newPlanTypeUpper = newPlanType.toUpperCase();
+        switch (currentPlanUpper) {
             case "STANDARD":
             case "STUDENT":
-                return newPlanType.equalsIgnoreCase("SILVER") || newPlanType.equalsIgnoreCase("GOLD");
+                return newPlanTypeUpper.equalsIgnoreCase("SILVER")
+                        || newPlanTypeUpper.equalsIgnoreCase("GOLD");
             case "SILVER":
-                return newPlanType.equalsIgnoreCase("GOLD");
+                return newPlanTypeUpper.equalsIgnoreCase("GOLD");
             case "GOLD":
                 return false;
             default:
@@ -119,19 +117,18 @@ public class UpgradePlan implements Command {
         }
     }
 
-    private int calculateUpgradeFee(String currentPlan, String newPlanType) {
-        currentPlan = currentPlan.toUpperCase();
-        newPlanType = newPlanType.toUpperCase();
-        if (currentPlan.equals("STANDARD") || currentPlan.equals("STUDENT")) {
-            if (newPlanType.equals("SILVER")) {
-                return 100;
-            } else if (newPlanType.equals("GOLD")) {
-                return 350;
+    private int calculateUpgradeFee(final String currentPlan, final String newPlanType) {
+        String currentPlanUpper = currentPlan.toUpperCase();
+        String newPlanTypeUpper = newPlanType.toUpperCase();
+        if (currentPlanUpper.equals("STANDARD") || currentPlanUpper.equals("STUDENT")) {
+            if (newPlanTypeUpper.equals("SILVER")) {
+                return FEE_STANDARD_TO_SILVER;
+            } else if (newPlanTypeUpper.equals("GOLD")) {
+                return FEE_STANDARD_TO_GOLD;
             }
-        } else if (currentPlan.equals("SILVER") && newPlanType.equals("GOLD")) {
-            return 250;
+        } else if (currentPlanUpper.equals("SILVER") && newPlanTypeUpper.equals("GOLD")) {
+            return FEE_SILVER_TO_GOLD;
         }
         return 0;
     }
 }
-

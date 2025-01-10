@@ -41,7 +41,8 @@ public final class Bank {
             String account = commerciantNode.get("account").asText();
             String type = commerciantNode.get("type").asText();
             String cashbackStrategy = commerciantNode.get("cashbackStrategy").asText();
-            userRepo.addCommerciant(new Commerciant(commerciant, id, account, type, cashbackStrategy));
+            userRepo.addCommerciant(new Commerciant(commerciant, id, account,
+                    type, cashbackStrategy));
         }
 
         for (JsonNode rateNode : inputData.get("exchangeRates")) {
@@ -53,7 +54,13 @@ public final class Bank {
         }
     }
 
-    public static Bank getInstance(final JsonNode inputData, boolean reset) {
+    /**
+     * Returneaza instanta Bank
+     * @param inputData
+     * @param reset
+     * @return
+     */
+    public static Bank getInstance(final JsonNode inputData, final boolean reset) {
         if (reset || instance == null) {
             synchronized (Bank.class) {
                 if (reset || instance == null) {
@@ -64,6 +71,9 @@ public final class Bank {
         return instance;
     }
 
+    /**
+     * Reseteaza instanta Bank
+     */
     public static void resetInstance() {
         instance = null;
     }

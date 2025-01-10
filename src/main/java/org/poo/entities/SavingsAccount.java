@@ -5,7 +5,8 @@ public final class SavingsAccount extends Account {
     private double interestRate;
 
     public SavingsAccount(final String iban, final String currency, final double balance,
-                          final String accountType, final double interestRate, final String email, UserRepo userRepo) {
+                          final String accountType, final double interestRate,
+                          final String email, final UserRepo userRepo) {
         super(iban, currency, balance, email, userRepo);
         this.interestRate = interestRate;
         this.accountType = accountType;
@@ -25,8 +26,4 @@ public final class SavingsAccount extends Account {
         return accountType;
     }
 
-    @Override
-    public void update(boolean accepted) {
-        return;
-    }
 }

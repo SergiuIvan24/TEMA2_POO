@@ -1,19 +1,20 @@
 package org.poo.Commands;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.poo.entities.Account;
 import org.poo.entities.BusinessAccount;
 import org.poo.entities.User;
 import org.poo.entities.UserRepo;
 
-public class AddNewBusinessAssociate implements Command {
+public final class AddNewBusinessAssociate implements Command {
    private String accountIban;
    private String role;
    private String email;
    private final int timestamp;
    private UserRepo userRepo;
 
-   public AddNewBusinessAssociate(final String accountIban, final String role, final String email, final int timestamp, final UserRepo userRepo) {
+   public AddNewBusinessAssociate(final String accountIban,
+                                  final String role, final String email,
+                                  final int timestamp, final UserRepo userRepo) {
       this.accountIban = accountIban;
       this.role = role;
       this.email = email;
@@ -22,22 +23,22 @@ public class AddNewBusinessAssociate implements Command {
    }
 
    @Override
-    public void execute(ArrayNode output) {
-       BusinessAccount account = (BusinessAccount)userRepo.getAccountByIBAN(accountIban);
-       User userToBeAdded = userRepo.getUser(this.email);
-       if (userToBeAdded == null) {
+    public void execute(final ArrayNode output) {
+       BusinessAccount account = (BusinessAccount) userRepo.getAccountByIBAN(accountIban);
+       User user = userRepo.getUser(this.email);
+       if (user == null) {
             return;
        }
         switch (role) {
             case "employee":
-                account.addEmployee(userToBeAdded);
-                userToBeAdded.addAccount(account);
-                account.addTimestampWhenBecameAssociate(userToBeAdded, timestamp);
+                account.addEmployee(user);
+                user.addAccount(account);
+                account.addTimestampWhenBecameAssociate(user, timestamp);
                 break;
             case "manager":
-                account.addManager(userToBeAdded);
-                userToBeAdded.addAccount(account);
-                account.addTimestampWhenBecameAssociate(userToBeAdded, timestamp);
+                account.addManager(user);
+                user.addAccount(account);
+                account.addTimestampWhenBecameAssociate(user, timestamp);
                 break;
             default:
                 break;
