@@ -22,7 +22,7 @@ public final class SpendingThreshold implements CashbackStrategy {
                                     final String category,
                                     final double transactionAmount,
                                     final UserRepo userRepo) {
-        double totalSpentForThisMerchant = account.getSpentForMerchant(category);
+        double totalSpentForThisMerchant = account.getTotalSpendingThreshold();
 
         String plan = account.getUserRepo().getUser(account.getEmail()).getServicePlan();
 

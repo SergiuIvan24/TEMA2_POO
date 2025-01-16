@@ -8,6 +8,7 @@ import org.poo.Cashback.NrOfTransactions;
 import org.poo.Cashback.Processor;
 import org.poo.Cashback.SpendingThreshold;
 import org.poo.entities.Account;
+import org.poo.entities.BusinessAccount;
 import org.poo.entities.Card;
 import org.poo.entities.Commerciant;
 import org.poo.entities.OneTimePayCard;
@@ -76,7 +77,6 @@ public final class PayOnline implements Command {
 
         for (Account acc : user.getAccounts()) {
             for (Card card : acc.getCards()) {
-                System.out.println("Card: " + card.getCardNumber());
                 if (card.getCardNumber().equals(cardNumber)) {
                     selectedAccount = acc;
                     selectedCard = card;
@@ -128,7 +128,14 @@ public final class PayOnline implements Command {
         }
         double convertedAmountInRON = convertedAmount * userRepo
                 .getExchangeRate(selectedAccount.getCurrency(), "RON");
-        double commissionRate = userRepo.getPlanCommissionRate(user, convertedAmountInRON);
+        double commissionRate;
+
+        if (selectedAccount.getAccountType().equals("business")) {
+            commissionRate = userRepo.getPlanCommissionRate(((BusinessAccount)selectedAccount).getOwner(), convertedAmountInRON);
+        } else {
+            commissionRate = userRepo.getPlanCommissionRate(user, convertedAmountInRON);
+        }
+
         double commission = commissionRate * convertedAmount;
         double newBalance = selectedAccount.getBalance() - (convertedAmount + commission);
         if (newBalance < 0) {
@@ -139,6 +146,15 @@ public final class PayOnline implements Command {
             selectedAccount.addTransaction(insufficientFundsTx);
             return;
         }
+
+        if (selectedAccount.getAccountType().equals("business")
+                && ((BusinessAccount) selectedAccount).getEmployees().contains(user)) {
+            BusinessAccount businessAccount = (BusinessAccount) selectedAccount;
+            if (businessAccount.getSpendingLimit() < convertedAmount) {
+                return;
+            }
+        }
+
         selectedAccount.setBalance(newBalance);
 
         if (convertedAmount > 0) {
@@ -175,6 +191,7 @@ public final class PayOnline implements Command {
         double amountInRON = amount * userRepo.getExchangeRate(currency, "RON");
         if (c != null && c.getCashbackStrategy().equals("spendingThreshold")) {
             selectedAccount.addSpendingThresholdTotal(c.getCommerciant(), convertedAmountInRON);
+            selectedAccount.addTotalSpendingThreshold(convertedAmountInRON);
         }
 
 

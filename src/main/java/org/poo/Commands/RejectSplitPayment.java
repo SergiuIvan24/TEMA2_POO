@@ -49,6 +49,6 @@ public final class RejectSplitPayment implements Command {
             output.add(errorNode);
             return;
         }
-        currentPayment.Acceptance(email, false, output, splitPaymentType);
+        currentPayment.acceptance(email, false, output, splitPaymentType);
     }
 }

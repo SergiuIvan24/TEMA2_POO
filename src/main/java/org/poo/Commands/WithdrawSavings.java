@@ -78,7 +78,6 @@ public final class WithdrawSavings implements Command {
 
         double amountInSavingsCurrency = amount
                 * userRepo.getExchangeRate(currency, savingsAccount.getCurrency());
-        double amountInRON = amount * userRepo.getExchangeRate(currency, "RON");
         double totalAmountWithCommission = amountInSavingsCurrency;
 
         if (savingsAccount.getBalance() < totalAmountWithCommission) {

@@ -66,10 +66,6 @@ public final class BusinessAccount extends Account {
         return owner;
     }
 
-    public void setOwner(final User owner) {
-        this.owner = owner;
-    }
-
     public ArrayList<User> getManagers() {
         return managers;
     }

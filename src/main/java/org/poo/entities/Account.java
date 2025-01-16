@@ -18,12 +18,29 @@ public abstract class Account {
     private ArrayList<Transaction> transactions = new ArrayList<Transaction>();
     private String alias;
     private Map<String, Integer> nrOfTransactions;
-    private double totalSpent;
+    private double totalSpendingThreshold;
     private Map<String, Boolean> cashbackReceived;
     private String email;
     private UserRepo userRepo;
     private Map<String, Double> spendingThresholdTotals = new HashMap<>();
     private Map<String, Double> pendingCategoryDiscounts = new HashMap<>();
+
+    /**
+     * Returneaza totalul cheltuit pe cont la comercianti de tipul spendingThreshold
+     * @return
+     */
+
+    public double getTotalSpendingThreshold() {
+        return totalSpendingThreshold;
+    }
+
+    /**
+     * Adauga o suma la totalul cheltuit pe cont la comercianti de tipul spendingThreshold
+     * @param amount
+     */
+    public void addTotalSpendingThreshold(final double amount) {
+        this.totalSpendingThreshold += amount;
+    }
 
     /**
      * Adauga o tranzactie in lista de tranzactii a contului
@@ -148,6 +165,7 @@ public abstract class Account {
         this.cashbackReceived.put("Food", false);
         this.cashbackReceived.put("Tech", false);
         this.cashbackReceived.put("Clothes", false);
+        this.totalSpendingThreshold = 0.0;
     }
 
 

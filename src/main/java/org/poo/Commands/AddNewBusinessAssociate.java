@@ -29,6 +29,13 @@ public final class AddNewBusinessAssociate implements Command {
        if (user == null) {
             return;
        }
+       if (account == null) {
+           return;
+       }
+       if (account.getOwner() == user || account.getManagers().contains(user)
+               || account.getEmployees().contains(user)) {
+           return;
+       }
         switch (role) {
             case "employee":
                 account.addEmployee(user);

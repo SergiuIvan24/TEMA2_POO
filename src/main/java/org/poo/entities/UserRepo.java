@@ -204,7 +204,6 @@ public final class UserRepo {
                 }
             }
         }
-        System.out.println("IBAN not found for alias " + alias);
         return null;
     }
 

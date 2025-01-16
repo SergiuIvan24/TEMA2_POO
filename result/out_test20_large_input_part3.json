@@ -2094,9 +2094,9 @@
   } ],
   "timestamp" : 777
 }, {
-  "command" : "changeSpendingLimit",
+  "command" : "changeDepositLimit",
   "output" : {
-    "description" : "You must be owner in order to change spending limit.",
+    "description" : "You must be owner in order to change deposit limit.",
     "timestamp" : 794
   },
   "timestamp" : 794
@@ -2265,16 +2265,8 @@
       "username" : "Sheppard Heather"
     }, {
       "spent" : 0.0,
-      "deposited" : 0.0,
-      "username" : "del Ripoll Nicodemo"
-    }, {
-      "spent" : 0.0,
       "deposited" : 451.0,
       "username" : "du Mendes Thibault"
-    }, {
-      "spent" : 0.0,
-      "deposited" : 0.0,
-      "username" : "Charette Gregoire"
     } ],
     "employees" : [ {
       "spent" : 0.0,
@@ -2473,7 +2465,7 @@
     "email" : "Jennifer_Gould@mail.com.ca",
     "accounts" : [ {
       "IBAN" : "RO58POOB7344468893732422",
-      "balance" : 1097.4993279797122,
+      "balance" : 1098.6855705832627,
       "currency" : "CAD",
       "type" : "classic",
       "cards" : [ {
@@ -3018,7 +3010,7 @@
     "email" : "Thibault_du_Mendes@zoho.fr",
     "accounts" : [ {
       "IBAN" : "RO01POOB9893132718323396",
-      "balance" : -4591.2919999999995,
+      "balance" : -4636.984,
       "currency" : "EUR",
       "type" : "savings",
       "cards" : [ {
@@ -3033,7 +3025,7 @@
   "timestamp" : 881,
   "output" : {
     "IBAN" : "RO58POOB7344468893732422",
-    "balance" : 1097.4993279797122,
+    "balance" : 1098.6855705832627,
     "currency" : "CAD",
     "transactions" : [ {
       "timestamp" : 620,

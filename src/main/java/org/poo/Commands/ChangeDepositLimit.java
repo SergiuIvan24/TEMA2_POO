@@ -30,11 +30,11 @@ public final class ChangeDepositLimit implements Command {
         BusinessAccount account = (BusinessAccount) user.getAccount(accountIban);
         if (account.getOwner() != user) {
             ObjectNode errorOutput = new ObjectMapper().createObjectNode();
-            errorOutput.put("description", "You must be owner in order to change spending limit.");
+            errorOutput.put("description", "You must be owner in order to change deposit limit.");
             errorOutput.put("timestamp", timestamp);
 
             ObjectNode commandOutput = new ObjectMapper().createObjectNode();
-            commandOutput.put("command", "changeSpendingLimit");
+            commandOutput.put("command", "changeDepositLimit");
             commandOutput.set("output", errorOutput);
             commandOutput.put("timestamp", timestamp);
 

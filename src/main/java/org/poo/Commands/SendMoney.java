@@ -8,6 +8,7 @@ import org.poo.Cashback.NrOfTransactions;
 import org.poo.Cashback.Processor;
 import org.poo.Cashback.SpendingThreshold;
 import org.poo.entities.Account;
+import org.poo.entities.BusinessAccount;
 import org.poo.entities.Commerciant;
 import org.poo.entities.Transaction;
 import org.poo.entities.User;
@@ -66,7 +67,6 @@ public final class SendMoney implements Command {
         resultNode.put("command", "sendMoney");
         User sender = userRepo.getUser(senderEmail);
         if (sender == null) {
-            System.out.println("User sender not found at timestamp " + timestamp);
             return;
         }
 
@@ -106,30 +106,20 @@ public final class SendMoney implements Command {
             }
         }
         if (receiverIsComerciant) {
-            System.out.println("Receiver is a commerciant at timestamp " + timestamp);
             Commerciant receiver = userRepo.getCommerciantByAccount(realReceiverIBAN);
             double amountInRON = amount * userRepo
                     .getExchangeRate(senderAccount.getCurrency(), "RON");
             double commissionRate = userRepo.getPlanCommissionRate(sender, amountInRON);
             double commission = commissionRate * amount;
-            senderAccount.setBalance(senderAccount.getBalance() - (amount + commission));
-            User user = sender;
-            if (amountInRON >= MIN_TRANSACTION_AMOUNT && user.getServicePlan().equals("silver")) {
-                user.addNrOfTransactionsOver300RON();
-                if (user.getNrOfTransactionsOver300RON() == MIN_TRANSACTION_NR
-                        && user.getServicePlan().equals("silver")) {
-                    user.setServicePlan("gold");
-                    Transaction upgradePlanTx = new Transaction.Builder()
-                            .setTimestamp(timestamp)
-                            .setDescription("Upgrade plan")
-                            .setAccountIban(senderAccount.getIban())
-                            .setNewPlanType("gold")
-                            .build();
-                    senderAccount.addTransaction(upgradePlanTx);
+            if (senderAccount.getAccountType().equals("business")
+                    && ((BusinessAccount) senderAccount).getEmployees().contains(sender)) {
+                BusinessAccount businessAccount = (BusinessAccount) senderAccount;
+                if (businessAccount.getSpendingLimit() < amount + commission) {
+                    return;
                 }
             }
+            senderAccount.setBalance(senderAccount.getBalance() - (amount + commission));
 
-            double discountInAccountCurrency = 0.0;
             if (receiver != null) {
                 String merchantCategory = receiver.getType();
                 double pendingDiscountInRONRate = senderAccount
@@ -137,8 +127,6 @@ public final class SendMoney implements Command {
                 if (pendingDiscountInRONRate > 0) {
                     amountInRON = amount * userRepo.getExchangeRate(senderAccount.getCurrency(), "RON")
                             * pendingDiscountInRONRate;
-                    discountInAccountCurrency = amountInRON
-                            * userRepo.getExchangeRate("RON", senderAccount.getCurrency());
                     senderAccount.markCashbackReceived(merchantCategory);
                     senderAccount.clearPendingCategoryDiscount(merchantCategory);
                 }
@@ -146,6 +134,7 @@ public final class SendMoney implements Command {
 
             if (receiver.getCashbackStrategy().equals("spendingThreshold")) {
                 senderAccount.addSpendingThresholdTotal(receiver.getCommerciant(), amountInRON);
+                senderAccount.addTotalSpendingThreshold(amountInRON);
             }
             double cashback = calculateCashback(senderAccount, receiver.getCommerciant(),
                     amountInRON);
@@ -183,6 +172,22 @@ public final class SendMoney implements Command {
            return;
         }
 
+        if (senderAccount.getAccountType().equals("business")
+                && ((BusinessAccount) senderAccount).getEmployees().contains(sender)) {
+            BusinessAccount businessAccount = (BusinessAccount) senderAccount;
+            if (businessAccount.getSpendingLimit() < amount) {
+                return;
+            }
+        }
+
+        if (receiverAccount.getAccountType().equals("business")
+                && ((BusinessAccount) receiverAccount).getEmployees().contains(receiver)) {
+            BusinessAccount businessAccount = (BusinessAccount) receiverAccount;
+            if (businessAccount.getDepositLimit() < amount) {
+                return;
+            }
+        }
+
         double newSenderBalance = senderAccount.getBalance() - amount;
 
         if (senderAccount.getBalance() < amount) {
@@ -204,7 +209,13 @@ public final class SendMoney implements Command {
 
         sender.addSpent(amountInRON);
 
-        double commissionRate = userRepo.getPlanCommissionRate(sender, amountInRON);
+        double commissionRate;
+
+        if (senderAccount.getAccountType().equals("business")) {
+            commissionRate = userRepo.getPlanCommissionRate(((BusinessAccount) senderAccount).getOwner(), amountInRON);
+        } else {
+            commissionRate = userRepo.getPlanCommissionRate(sender, amountInRON);
+        }
 
         double commission = commissionRate * amount;
         if (senderAccount.getBalance() < (amount + commission)) {
@@ -221,14 +232,6 @@ public final class SendMoney implements Command {
         User initiator = null;
         if (senderAccount.getAccountType().equals("business")) {
             initiator = userRepo.getUser(senderEmail);
-        }
-        User user = sender;
-        if (amountInRON >= MIN_TRANSACTION_AMOUNT && user.getServicePlan().equals("silver")) {
-            user.addNrOfTransactionsOver300RON();
-            if (user.getNrOfTransactionsOver300RON() == MIN_TRANSACTION_NR
-                    && user.getServicePlan().equals("silver")) {
-                user.setServicePlan("gold");
-            }
         }
 
         double rate = userRepo.getExchangeRate(senderAccount.getCurrency(),

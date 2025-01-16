@@ -1,0 +1,23 @@
+commit 05d7ccb0e24dc0eb4c4b5bc670edd0d58ddca12a
+Author: Sergiu Ivan <sergiu.ivan@stud.acs.upb.ro>
+Date:   Fri Jan 10 16:09:08 2025 +0200
+
+    coding style + fix cashback nrOfTransactions
+
+commit 540d3148727fe23b606eef9de2f1a587e5f421dd
+Author: Sergiu Ivan <sergiu.ivan@stud.acs.upb.ro>
+Date:   Wed Jan 8 15:41:02 2025 +0200
+
+    implementare pana la test 13, corectare cashback, corectare tranzactii business
+
+commit c86ec46144753bef976b09614ca36a10ab685c78
+Author: Sergiu Ivan <sergiu.ivan@stud.acs.upb.ro>
+Date:   Sat Jan 4 18:01:09 2025 +0200
+
+    implementare cashback + split + business_report
+
+commit 570de7107b8a8a1a7372e188e51e4efe634b60e0
+Author: SergiuIvan24 <151393352+SergiuIvan24@users.noreply.github.com>
+Date:   Sun Dec 22 15:40:02 2024 +0200
+
+    Initial commit

@@ -13,8 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+
 
 public final class BusinessReport implements Command {
     private String type;
@@ -211,18 +210,18 @@ public final class BusinessReport implements Command {
 
     private static final class CommerciantData {
         private double totalReceived = 0;
-        private final Set<String> managers = new TreeSet<>();
-        private final Set<String> employees = new TreeSet<>();
+        private final List<String> managers = new ArrayList<>();
+        private final List<String> employees = new ArrayList<>();
 
         public double getTotalReceived() {
             return totalReceived;
         }
 
-        public Set<String> getManagers() {
+        public List<String> getManagers() {
             return managers;
         }
 
-        public Set<String> getEmployees() {
+        public List<String> getEmployees() {
             return employees;
         }
     }

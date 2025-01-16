@@ -28,7 +28,13 @@ public final class DeleteCard implements Command {
         if (account == null) {
             return;
         }
+        if (account.getBalance() != 0) {
+            return;
+        }
         Card card = account.getCard(cardNumber);
+        if (!card.isBlocked()) {
+            return;
+        }
         account.removeCard(card);
         Transaction transaction = new Transaction.Builder()
                 .setTimestamp(timestamp)

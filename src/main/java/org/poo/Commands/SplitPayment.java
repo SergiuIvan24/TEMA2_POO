@@ -142,15 +142,7 @@ public final class SplitPayment implements Command {
             if (split.splitPaymentType.equalsIgnoreCase(paymentType)) {
                 if (split.userIndexMap.containsKey(email)) {
                     return split;
-                } else {
-                    System.out.println("Email " + email
-                            + " not found in userIndexMap for split payment with timestamp: "
-                            + split.timestamp);
                 }
-            } else {
-                System.out.println("Split payment with timestamp: "
-                        + split.timestamp + " has a different type: "
-                        + split.splitPaymentType);
             }
         }
         return null;
@@ -164,7 +156,7 @@ public final class SplitPayment implements Command {
      * @param output the output array node
      * @param paymentType the type of the split payment
      */
-    public void Acceptance(final String email, final boolean accepted,
+    public void acceptance(final String email, final boolean accepted,
                            final ArrayNode output,
                            final String paymentType) {
         SplitPayment targetPayment = findRelevantSplitPayment(email, paymentType);

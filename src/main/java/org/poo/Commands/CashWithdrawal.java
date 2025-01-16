@@ -48,21 +48,26 @@ public final class CashWithdrawal implements Command {
         Account account = null;
         User userWithCard = null;
 
-        for (User user : userRepo.getAllUsers()) {
-            for (Account acc : user.getAccounts()) {
-                for (Card card : acc.getCards()) {
-                    if (card.getCardNumber().equals(cardNumber)) {
-                        account = acc;
-                        userWithCard = user;
-                        break;
-                    }
-                }
-                if (account != null) {
+        User user = userRepo.getUser(email);
+        if (user == null) {
+            response.put("description", "User not found");
+            response.put("timestamp", timestamp);
+
+            commandResponse.put("command", "cashWithdrawal");
+            commandResponse.set("output", response);
+            commandResponse.put("timestamp", timestamp);
+
+            output.add(commandResponse);
+            return;
+        }
+
+        for (Account acc : user.getAccounts()) {
+            for (Card card : acc.getCards()) {
+                if (card.getCardNumber().equals(cardNumber)) {
+                    account = acc;
+                    userWithCard = user;
                     break;
                 }
-            }
-            if (account != null) {
-                break;
             }
         }
 
@@ -77,20 +82,6 @@ public final class CashWithdrawal implements Command {
             output.add(commandResponse);
             return;
         }
-
-        if (!userWithCard.getEmail().equals(email)) {
-            response.put("description", "Card not found");
-            response.put("timestamp", timestamp);
-            commandResponse.put("command", "cashWithdrawal");
-            commandResponse.set("output", response);
-            commandResponse.put("timestamp", timestamp);
-
-            output.add(commandResponse);
-            return;
-        }
-
-
-        User user = userRepo.getUser(email);
 
         for (Card card : account.getCards()) {
             if (card.getCardNumber().equals(cardNumber)) {

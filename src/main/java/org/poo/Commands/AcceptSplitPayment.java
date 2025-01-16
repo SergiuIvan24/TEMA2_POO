@@ -51,7 +51,7 @@ public final class AcceptSplitPayment implements Command {
             output.add(errorNode);
             return;
         }
-        currentPayment.Acceptance(email, true, output, splitPaymentType);
+        currentPayment.acceptance(email, true, output, splitPaymentType);
     }
 
 }
